@@ -4,19 +4,21 @@ export default {
     extend: {
       colors: {
         brand: {
-          DEFAULT: '#0f4c81',
-          dark: '#0b3a5c',
-          light: '#e3eefb'
+          DEFAULT: '#2563eb',
+          dark: '#1d4ed8',
+          light: '#dbeafe'
         },
         accent: {
-          DEFAULT: '#f5b800',
-          dark: '#c48b00',
-          light: '#fff2cc'
+          DEFAULT: '#8b5cf6',
+          dark: '#6d28d9',
+          light: '#ede9fe'
         },
-        surface: '#f8fafc'
+        surface: '#080a17',
+        ink: '#050713',
+        card: '#0d1020'
       },
       boxShadow: {
-        soft: '0 18px 45px rgba(15, 23, 42, 0.08)'
+        soft: '0 18px 45px rgba(15, 23, 42, 0.12)'
       }
     }
   },

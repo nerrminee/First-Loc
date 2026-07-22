@@ -1,5 +1,7 @@
 import { Link, Outlet, useNavigate } from 'react-router-dom'
 import { Home, CalendarDays, Car, ClipboardList, Users, CreditCard, Wrench, FileText, Settings, LogOut, DollarSign } from 'lucide-react'
+import logoImage from '../../assets/logo.png'
+import { getCurrentAdmin, logout } from '../../lib/auth'
 
 const menu = [
   { label: 'Tableau de bord', to: '/dashboard', icon: Home },
@@ -17,11 +19,11 @@ const menu = [
 
 export default function DashboardLayout() {
   const navigate = useNavigate()
+  const admin = getCurrentAdmin()
 
   const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated')
-    localStorage.removeItem('userRole')
-    navigate('/login')
+    logout()
+    navigate('/login', { replace: true })
   }
 
   return (
@@ -29,7 +31,9 @@ export default function DashboardLayout() {
       <div className="container mx-auto grid min-h-screen gap-8 xl:grid-cols-[280px_1fr]">
         <aside className="rounded-[2rem] bg-white p-6 shadow-soft">
           <div className="mb-10 flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-brand text-white">5</div>
+            <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-gradient-to-br from-brand to-accent p-2 shadow-soft">
+              <img src={logoImage} alt="First Loc DZ" className="h-full w-full rounded-3xl object-cover" />
+            </div>
             <div>
               <p className="text-sm uppercase tracking-[0.28em] text-brand">5 FIRST LOC DZ</p>
               <p className="text-sm text-slate-600">Tableau de bord</p>
@@ -55,7 +59,7 @@ export default function DashboardLayout() {
           <div className="rounded-[2rem] bg-white p-6 shadow-soft">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.28em] text-brand">Bonjour, administrateur</p>
+                <p className="text-sm uppercase tracking-[0.28em] text-brand">Bonjour, {admin?.username}</p>
                 <h1 className="mt-2 text-3xl font-semibold text-slate-950">Bienvenue sur votre espace de gestion.</h1>
               </div>
             </div>

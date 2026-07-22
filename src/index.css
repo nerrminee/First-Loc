@@ -1,87 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #f8fafc;
-  color: #0f172a;
-  font-size: 16px;
-  line-height: 1.5;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html, body, #root {
-  min-height: 100%;
-}
-
-body {
-  margin: 0;
-  background: #f8fafc;
-  color: #0f172a;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-button, input, textarea, select {
-  font: inherit;
-}
-
-img {
-  max-width: 100%;
-  display: block;
-}
-
-button {
-  cursor: pointer;
-}
-
-.container {
-  width: min(1120px, 100% - 2rem);
-  margin: 0 auto;
-}
-
-.text-brand {
-  color: #0f4c81;
-}
-
-.bg-brand {
-  background-color: #0f4c81;
-}
-
-.bg-secondary {
-  background-color: #f5b800;
-}
-
-.shadow-soft {
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
-}
-
-.card-glass {
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(15, 76, 129, 0.08);
-  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.08);
-}
-
-input, select, textarea {
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 0.75rem;
-  padding: 0.9rem 1rem;
-}
-
-input:focus, select:focus, textarea:focus {
-  outline: 2px solid rgba(15, 76, 129, 0.2);
-  outline-offset: 2px;
-}
-
-::selection {
-  background: rgba(15, 76, 129, 0.15);
-}
+:root { color-scheme: dark; font-family: Manrope, ui-sans-serif, system-ui, sans-serif; background: #050713; color: #f8fafc; font-synthesis: none; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body, #root { min-height: 100%; }
+body { margin: 0; background: #050713; }
+a { color: inherit; text-decoration: none; }
+button, input, textarea, select { font: inherit; }
+img { max-width: 100%; display: block; }
+button { cursor: pointer; }
+.container { width: min(1180px, calc(100% - 2rem)); margin-inline: auto; }
+.font-display { font-family: 'Space Grotesk', Manrope, sans-serif; }
+.brand-wordmark { font-family: 'Space Grotesk', Manrope, sans-serif; font-size: clamp(2.8rem,7vw,5.4rem); font-weight: 700; font-style: italic; line-height: .95; letter-spacing: -.06em; text-transform: uppercase; color: #f8fafc; text-shadow: 0 0 32px rgba(59,130,246,.22); }
+.brand-wordmark span { background: linear-gradient(115deg,#60a5fa,#8b5cf6 55%,#d946ef); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; }
+.logo-showcase { width: 11rem; height: 10rem; padding: .3rem; border-radius: 2rem; background: radial-gradient(circle,rgba(124,58,237,.2),transparent 68%); filter: drop-shadow(0 0 24px rgba(99,102,241,.3)); }
+.top-brand-name { display: block; font-family: 'Space Grotesk',Manrope,sans-serif; font-size: 1.15rem; font-weight: 700; font-style: italic; letter-spacing: -.03em; text-transform: uppercase; }
+.top-brand-name span { background: linear-gradient(110deg,#60a5fa,#8b5cf6,#d946ef); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.brand-splash { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; overflow: hidden; background: #050713; opacity: 1; transition: opacity .5s ease, visibility .5s ease; }
+.brand-splash-leaving { opacity: 0; visibility: hidden; }
+.brand-splash-glow { position: absolute; width: 28rem; height: 28rem; border-radius: 50%; background: conic-gradient(from 20deg,rgba(37,99,235,.3),rgba(124,58,237,.4),rgba(217,70,239,.22),rgba(37,99,235,.3)); filter: blur(90px); animation: splash-pulse 1.5s ease-in-out infinite alternate; }
+.brand-splash-content { position: relative; display: flex; flex-direction: column; align-items: center; animation: splash-enter .75s cubic-bezier(.2,.8,.2,1) both; }
+.brand-splash-logo { width: clamp(10rem,24vw,15rem); height: clamp(9rem,22vw,14rem); object-fit: contain; filter: drop-shadow(0 0 30px rgba(99,102,241,.38)); }
+.brand-splash-name { margin-top: -.3rem; font-family: 'Space Grotesk',Manrope,sans-serif; font-size: clamp(2rem,6vw,4.25rem); font-weight: 700; font-style: italic; line-height: 1; letter-spacing: -.055em; text-transform: uppercase; }
+.brand-splash-name span { background: linear-gradient(110deg,#60a5fa,#8b5cf6 55%,#d946ef); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.brand-splash-tagline { margin-top: .8rem; color: #94a3b8; font-size: .65rem; font-weight: 700; letter-spacing: .38em; text-transform: uppercase; }
+.brand-splash-line { width: 8rem; height: 2px; margin-top: 1.4rem; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.1); }
+.brand-splash-line::after { content: ''; display: block; width: 100%; height: 100%; background: linear-gradient(90deg,#2563eb,#8b5cf6,#d946ef); transform-origin: left; animation: splash-line 1.35s ease both; }
+@keyframes splash-enter { from { opacity: 0; transform: translateY(18px) scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes splash-line { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes splash-pulse { from { transform: scale(.85) rotate(-8deg); opacity: .6; } to { transform: scale(1.08) rotate(8deg); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .brand-splash-content,.brand-splash-line::after,.brand-splash-glow { animation: none; } }
+.text-gradient { background: linear-gradient(105deg, #60a5fa 5%, #8b5cf6 55%, #d946ef); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: .65rem; border-radius: .8rem; background: linear-gradient(105deg,#2563eb,#7c3aed); padding: .85rem 1.35rem; color: white; font-size: .875rem; font-weight: 700; box-shadow: 0 12px 30px rgba(91,57,220,.28); transition: .25s ease; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 38px rgba(91,57,220,.42); }
+.btn-secondary { display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.16); border-radius: .8rem; background: rgba(255,255,255,.04); padding: .85rem 1.35rem; font-size: .875rem; font-weight: 700; backdrop-filter: blur(8px); transition: .25s; }
+.btn-secondary:hover { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.3); }
+.eyebrow { margin-bottom: 1rem; color: #a78bfa; font-size: .72rem; font-weight: 800; letter-spacing: .26em; text-transform: uppercase; }
+.section-title { font-family: 'Space Grotesk', Manrope, sans-serif; font-size: clamp(2.2rem,5vw,4.2rem); font-weight: 700; line-height: 1.04; letter-spacing: -.04em; }
+.vehicle-card { overflow: hidden; border: 1px solid rgba(255,255,255,.09); border-radius: 1.25rem; background: linear-gradient(150deg,rgba(255,255,255,.055),rgba(255,255,255,.018)); transition: .3s ease; }
+.vehicle-card:hover { transform: translateY(-6px); border-color: rgba(139,92,246,.45); box-shadow: 0 28px 60px rgba(0,0,0,.35); }
+.step-card { position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,.08); border-radius: 1.25rem; background: rgba(255,255,255,.025); padding: 2.5rem 2rem; }
+.step-number { position: absolute; right: 1rem; top: -.45rem; font-family: 'Space Grotesk'; font-size: 4.5rem; font-weight: 700; color: rgba(255,255,255,.035); }
+.glow { position: absolute; width: 28rem; height: 28rem; border-radius: 999px; filter: blur(120px); pointer-events: none; opacity: .18; }
+.glow-one { right: -10rem; top: 20%; background: #7c3aed; }
+.glow-two { left: 35%; top: 10%; background: #2563eb; }
+.shadow-soft { box-shadow: 0 24px 60px rgba(0,0,0,.3); }
+.bg-brand { background: linear-gradient(110deg,#2563eb,#7c3aed); }
+.text-brand { color: #8b5cf6; }
+.bg-surface { background: #080a17; }
+.card-glass { background: rgba(13,16,32,.92); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+input, select, textarea { background: #0d1020; color: #f8fafc; border: 1px solid rgba(255,255,255,.13); border-radius: .75rem; padding: .9rem 1rem; }
+input:focus, select:focus, textarea:focus { outline: 2px solid rgba(139,92,246,.45); outline-offset: 2px; }
+::selection { background: rgba(124,58,237,.5); }
+@media (max-width: 640px) { .container { width: min(100% - 1.25rem,1180px); } }

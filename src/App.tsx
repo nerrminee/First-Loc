@@ -1,4 +1,4 @@
-import { Route, Routes, Navigate } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import HomePage from './pages/home/HomePage'
 import VehiculesPage from './pages/vehicules/VehiculesPage'
 import VehiculeDetailsPage from './pages/vehicules/VehiculeDetailsPage'
@@ -18,31 +18,36 @@ import DashboardUsersPage from './pages/dashboard/DashboardUsersPage'
 import DashboardSettingsPage from './pages/dashboard/DashboardSettingsPage'
 import NotFoundPage from './pages/NotFoundPage'
 import ProtectedRoute from './components/ProtectedRoute'
+import PublicLayout from './components/PublicLayout'
+import BrandSplash from './components/BrandSplash'
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/vehicules" element={<VehiculesPage />} />
-      <Route path="/vehicules/:id" element={<VehiculeDetailsPage />} />
-      <Route path="/reservation" element={<ReservationPage />} />
+    <><BrandSplash /><Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-        <Route index element={<DashboardHome />} />
-        <Route path="calendrier" element={<DashboardCalendarPage />} />
-        <Route path="vehicules" element={<DashboardVehiclesPage />} />
-        <Route path="reservations" element={<DashboardReservationsPage />} />
-        <Route path="clients" element={<DashboardClientsPage />} />
-        <Route path="paiements" element={<DashboardPaymentsPage />} />
-        <Route path="entretiens" element={<DashboardMaintenancePage />} />
-        <Route path="depenses" element={<DashboardExpensesPage />} />
-        <Route path="historique" element={<DashboardHistoryPage />} />
-        <Route path="utilisateurs" element={<DashboardUsersPage />} />
-        <Route path="parametres" element={<DashboardSettingsPage />} />
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/vehicules" element={<VehiculesPage />} />
+        <Route path="/vehicules/:id" element={<VehiculeDetailsPage />} />
+        <Route path="/reservation" element={<ReservationPage />} />
       </Route>
-      <Route path="*" element={<NotFoundPage />} />
-      <Route path="/dashboard/*" element={<Navigate to="/login" replace />} />
-    </Routes>
+      <Route element={<ProtectedRoute />}>
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<DashboardHome />} />
+          <Route path="calendrier" element={<DashboardCalendarPage />} />
+          <Route path="vehicules" element={<DashboardVehiclesPage />} />
+          <Route path="reservations" element={<DashboardReservationsPage />} />
+          <Route path="clients" element={<DashboardClientsPage />} />
+          <Route path="paiements" element={<DashboardPaymentsPage />} />
+          <Route path="entretiens" element={<DashboardMaintenancePage />} />
+          <Route path="depenses" element={<DashboardExpensesPage />} />
+          <Route path="historique" element={<DashboardHistoryPage />} />
+          <Route path="utilisateurs" element={<DashboardUsersPage />} />
+          <Route path="parametres" element={<DashboardSettingsPage />} />
+        </Route>
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes></>
   )
 }
 

@@ -1,13 +1,7 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { isAuthenticated } from '../lib/auth'
 
-const isAuthenticated = () => {
-  return !!localStorage.getItem('isAuthenticated')
-}
-
-interface ProtectedRouteProps {
-  children: React.ReactNode
-}
-
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  return isAuthenticated() ? <>{children}</> : <Navigate to="/login" replace />
+export default function ProtectedRoute() {
+  const location = useLocation()
+  return isAuthenticated() ? <Outlet /> : <Navigate to="/login" replace state={{ from: location.pathname }} />
 }

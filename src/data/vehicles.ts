@@ -1,4 +1,8 @@
 import type { Vehicle } from '../types'
+import clioAlpine from '../assets/clio V.jpeg'
+import stepway from '../assets/Stepway (2).jpeg'
+import golf85 from '../assets/GOLF 8.5.jpeg'
+import poloRline from '../assets/polo (2).jpeg'
 
 export const demoVehicles: Vehicle[] = [
   {
@@ -18,8 +22,8 @@ export const demoVehicles: Vehicle[] = [
     statut: 'Disponible',
     prochain_entretien: '2025-03-15',
     notes: 'Contrôle technique récent, intérieur neuf.',
-    photo_principale: '/assets/renault-clio-alpine.jpg',
-    galerie: ['/assets/renault-clio-alpine-1.jpg', '/assets/renault-clio-alpine-2.jpg', '/assets/renault-clio-alpine-3.jpg']
+    photo_principale: clioAlpine,
+    galerie: [clioAlpine, clioAlpine, clioAlpine]
   },
   {
     id: 'vehicule-2',
@@ -38,8 +42,8 @@ export const demoVehicles: Vehicle[] = [
     statut: 'Réservé',
     prochain_entretien: '2025-02-10',
     notes: 'Entretien à jour, GPS intégré.',
-    photo_principale: '/assets/dacia-sandero-stepway.jpg',
-    galerie: ['/assets/dacia-sandero-stepway-1.jpg', '/assets/dacia-sandero-stepway-2.jpg', '/assets/dacia-sandero-stepway-3.jpg']
+    photo_principale: stepway,
+    galerie: [stepway, stepway, stepway]
   },
   {
     id: 'vehicule-3',
@@ -58,8 +62,8 @@ export const demoVehicles: Vehicle[] = [
     statut: 'En location',
     prochain_entretien: '2025-04-01',
     notes: 'Confort premium, phares LED adaptatifs.',
-    photo_principale: '/assets/vw-golf-8-5.jpg',
-    galerie: ['/assets/vw-golf-8-5-1.jpg', '/assets/vw-golf-8-5-2.jpg', '/assets/vw-golf-8-5-3.jpg']
+    photo_principale: golf85,
+    galerie: [golf85, golf85, golf85]
   },
   {
     id: 'vehicule-4',
@@ -78,7 +82,7 @@ export const demoVehicles: Vehicle[] = [
     statut: 'En entretien',
     prochain_entretien: '2025-01-25',
     notes: 'Véhicule en révision prochaine, sellerie cuir.',
-    photo_principale: '/assets/vw-polo-rline.jpg',
-    galerie: ['/assets/vw-polo-rline-1.jpg', '/assets/vw-polo-rline-2.jpg', '/assets/vw-polo-rline-3.jpg']
+    photo_principale: poloRline,
+    galerie: [poloRline, poloRline, poloRline]
   }
 ]
