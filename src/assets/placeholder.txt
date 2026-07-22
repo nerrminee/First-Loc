@@ -1,0 +1,1 @@
+Add your logo and vehicle images here. Use the names referenced in the demo data or update the paths accordingly.
