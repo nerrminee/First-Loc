@@ -1,13 +1,3 @@
-export default function DashboardHistoryPage() {
-  return (
-    <div className="space-y-6">
-      <div className="rounded-[2rem] bg-white p-6 shadow-soft">
-        <p className="text-sm uppercase tracking-[0.3em] text-brand">Historique</p>
-        <h2 className="mt-2 text-3xl font-semibold text-slate-950">Journal d activité</h2>
-      </div>
-      <div className="rounded-[2rem] bg-white p-6 shadow-soft text-slate-600">
-        <p>Les actions importantes seront enregistrées ici : réservations, départs, retours, paiements, maintenance.</p>
-      </div>
-    </div>
-  )
-}
+import { useRentalData } from '../../context/RentalDataContext'
+import { Empty, PageHeader, StatusBadge } from '../../components/admin/AdminUI'
+export default function DashboardHistoryPage(){const{rentals,maintenance,vehicles}=useRentalData();const events=[...rentals.filter(r=>r.status==='Terminée').map(r=>({id:r.id,date:r.updatedAt,type:'Location terminée',vehicleId:r.vehicleId,detail:`${r.clientName} · ${r.distanceDriven||0} km · ${r.finalPrice.toLocaleString()} DA`})),...maintenance.map(m=>({id:m.id,date:m.createdAt,type:m.type,vehicleId:m.vehicleId,detail:`${m.mileage.toLocaleString()} km · ${m.cost.toLocaleString()} DA · ${m.garage||'Garage non renseigné'}`}))].sort((a,b)=>b.date.localeCompare(a.date));return <div className="space-y-6"><PageHeader eyebrow="Traçabilité" title="Historique"/><div className="rounded-3xl bg-white p-6 shadow-soft"><div className="space-y-3">{events.map(e=>{const v=vehicles.find(x=>x.id===e.vehicleId);return <div key={`${e.type}-${e.id}`} className="flex flex-col gap-3 rounded-2xl border border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between"><div><div className="flex items-center gap-2"><StatusBadge tone={e.type==='Location terminée'?'blue':'amber'}>{e.type}</StatusBadge><span className="text-xs text-slate-500">{new Date(e.date).toLocaleString('fr-FR')}</span></div><p className="mt-2 font-semibold text-slate-950">{v?.brand} {v?.model}</p><p className="text-sm text-slate-500">{e.detail}</p></div></div>})}{!events.length&&<Empty>Aucun événement historique.</Empty>}</div></div></div>}

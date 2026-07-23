@@ -16,6 +16,8 @@ import DashboardExpensesPage from './pages/dashboard/DashboardExpensesPage'
 import DashboardHistoryPage from './pages/dashboard/DashboardHistoryPage'
 import DashboardUsersPage from './pages/dashboard/DashboardUsersPage'
 import DashboardSettingsPage from './pages/dashboard/DashboardSettingsPage'
+import DashboardActiveRentalsPage from './pages/dashboard/DashboardActiveRentalsPage'
+import DashboardCompletedRentalsPage from './pages/dashboard/DashboardCompletedRentalsPage'
 import NotFoundPage from './pages/NotFoundPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import PublicLayout from './components/PublicLayout'
@@ -37,6 +39,8 @@ function App() {
           <Route path="calendrier" element={<DashboardCalendarPage />} />
           <Route path="vehicules" element={<DashboardVehiclesPage />} />
           <Route path="reservations" element={<DashboardReservationsPage />} />
+          <Route path="locations-en-cours" element={<DashboardActiveRentalsPage />} />
+          <Route path="locations-terminees" element={<DashboardCompletedRentalsPage />} />
           <Route path="clients" element={<DashboardClientsPage />} />
           <Route path="paiements" element={<DashboardPaymentsPage />} />
           <Route path="entretiens" element={<DashboardMaintenancePage />} />

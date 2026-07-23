@@ -1,66 +1,9 @@
-import { Link } from 'react-router-dom'
-import { demoVehicles } from '../../data/vehicles'
-
-const statusClasses = {
-  Disponible: 'bg-emerald-100 text-emerald-800',
-  Réservé: 'bg-amber-100 text-amber-800',
-  'En location': 'bg-sky-100 text-sky-800',
-  'En entretien': 'bg-orange-100 text-orange-800',
-  Indisponible: 'bg-rose-100 text-rose-800'
-}
-
-export default function DashboardVehiclesPage() {
-  return (
-    <div className="space-y-6">
-      <div className="rounded-[2rem] bg-white p-6 shadow-soft">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-brand">Véhicules</p>
-            <h2 className="mt-2 text-3xl font-semibold text-slate-950">Gestion de la flotte</h2>
-          </div>
-          <button className="rounded-3xl bg-brand px-5 py-3 text-white transition hover:bg-brand-dark">Ajouter un véhicule</button>
-        </div>
-      </div>
-
-      <div className="overflow-hidden rounded-[2rem] bg-white shadow-soft">
-        <table className="min-w-full border-collapse text-left">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600">Photo</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600">Véhicule</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600">Kilométrage</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600">Prix / jour</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600">Statut</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {demoVehicles.map((vehicle) => (
-              <tr key={vehicle.id} className="border-t border-slate-200">
-                <td className="px-6 py-4">
-                  <img src={vehicle.photo_principale} alt={vehicle.modele} className="h-16 w-24 rounded-3xl object-cover" />
-                </td>
-                <td className="px-6 py-4">
-                  <div className="font-semibold text-slate-950">{vehicle.marque} {vehicle.modele}</div>
-                  <div className="text-sm text-slate-500">{vehicle.version}</div>
-                </td>
-                <td className="px-6 py-4 text-slate-700">{vehicle.kilometrage.toLocaleString()} km</td>
-                <td className="px-6 py-4 text-slate-700">{vehicle.prix_par_jour.toLocaleString()} DZD</td>
-                <td className="px-6 py-4">
-                  <span className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${statusClasses[vehicle.statut]}`}>
-                    {vehicle.statut}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <Link to={`/vehicules/${vehicle.id}`} className="rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-200">
-                    Voir
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
-}
+import { useState, type FormEvent } from 'react'
+import { Edit, Plus, Wrench } from 'lucide-react'
+import { useRentalData } from '../../context/RentalDataContext'
+import type { AdminVehicle, VehicleAdminStatus } from '../../types/rental'
+import { Empty, Field, Modal, PageHeader, StatusBadge } from '../../components/admin/AdminUI'
+const blank:AdminVehicle={id:'',brand:'',model:'',registration:'',year:new Date().getFullYear(),currentMileage:0,status:'Disponible',pricePerDay:0,lastOilChangeMileage:0,oilChangeInterval:10000,nextOilChangeMileage:10000,notes:''}
+const tone=(s:VehicleAdminStatus)=>s==='Disponible'?'green':s==='Loué'?'blue':s==='Réservé'?'amber':s==='Entretien'?'red':'slate'
+export default function DashboardVehiclesPage(){const{vehicles,upsertVehicle}=useRentalData();const[editing,setEditing]=useState<AdminVehicle|null>(null);return <div className="space-y-6"><PageHeader eyebrow="Flotte" title="Véhicules" action={<button onClick={()=>setEditing({...blank,id:`vehicule-${Date.now()}`})} className="btn-primary"><Plus size={17}/> Ajouter un véhicule</button>}/><div className="overflow-hidden rounded-3xl bg-white shadow-soft"><div className="overflow-x-auto"><table className="min-w-[1050px] w-full text-left"><thead className="bg-slate-50"><tr>{['Véhicule','Immatriculation','Année','KM actuel','Dernière vidange','Prochaine vidange','KM restants','Prix/jour','Statut','Actions'].map(x=><th key={x} className="px-5 py-4 text-xs font-bold uppercase text-slate-500">{x}</th>)}</tr></thead><tbody>{vehicles.map(v=>{const remaining=v.nextOilChangeMileage-v.currentMileage;return <tr key={v.id} className="border-t border-slate-100 text-sm text-slate-700"><td className="px-5 py-4"><div className="flex items-center gap-3">{v.photo&&<img src={v.photo} className="h-12 w-20 rounded-xl object-cover"/>}<strong className="text-slate-950">{v.brand} {v.model}</strong></div></td><td className="px-5 py-4">{v.registration}</td><td className="px-5 py-4">{v.year}</td><td className="px-5 py-4 font-semibold">{v.currentMileage.toLocaleString()} km</td><td className="px-5 py-4">{v.lastOilChangeMileage.toLocaleString()} km</td><td className="px-5 py-4">{v.nextOilChangeMileage.toLocaleString()} km</td><td className={`px-5 py-4 font-bold ${remaining<500?'text-rose-600':remaining<=2000?'text-orange-600':'text-emerald-600'}`}>{remaining>=0?`${remaining.toLocaleString()} km`:`Dépassée ${Math.abs(remaining).toLocaleString()} km`}</td><td className="px-5 py-4">{v.pricePerDay.toLocaleString()} DA</td><td className="px-5 py-4"><StatusBadge tone={tone(v.status)}>{v.status}</StatusBadge></td><td className="px-5 py-4"><button onClick={()=>setEditing(v)} className="rounded-xl bg-slate-100 p-2 text-slate-700"><Edit size={16}/></button></td></tr>})}</tbody></table></div>{!vehicles.length&&<Empty>Aucun véhicule.</Empty>}</div>{editing&&<VehicleModal vehicle={editing} onClose={()=>setEditing(null)} onSave={async v=>{await upsertVehicle(v);setEditing(null)}}/>}</div>}
+function VehicleModal({vehicle,onClose,onSave}:{vehicle:AdminVehicle;onClose:()=>void;onSave:(v:AdminVehicle)=>Promise<void>}){const[f,setF]=useState(vehicle);const set=(k:keyof AdminVehicle,v:string|number)=>setF(x=>({...x,[k]:v}));const submit=async(e:FormEvent)=>{e.preventDefault();if(f.currentMileage<0||f.lastOilChangeMileage<0) return;await onSave({...f,nextOilChangeMileage:f.lastOilChangeMileage+f.oilChangeInterval})};return <Modal title="Fiche véhicule" onClose={onClose}><form onSubmit={submit} className="grid gap-5 sm:grid-cols-2"><Field label="Marque"><input required value={f.brand} onChange={e=>set('brand',e.target.value)} className="w-full text-slate-900"/></Field><Field label="Modèle"><input required value={f.model} onChange={e=>set('model',e.target.value)} className="w-full text-slate-900"/></Field><Field label="Immatriculation"><input required value={f.registration} onChange={e=>set('registration',e.target.value)} className="w-full text-slate-900"/></Field><Field label="Année"><input type="number" value={f.year} onChange={e=>set('year',+e.target.value)} className="w-full text-slate-900"/></Field><Field label="Kilométrage actuel"><input min="0" type="number" value={f.currentMileage} onChange={e=>set('currentMileage',+e.target.value)} className="w-full text-slate-900"/></Field><Field label="Prix / jour"><input min="0" type="number" value={f.pricePerDay} onChange={e=>set('pricePerDay',+e.target.value)} className="w-full text-slate-900"/></Field><Field label="KM dernière vidange"><input min="0" type="number" value={f.lastOilChangeMileage} onChange={e=>set('lastOilChangeMileage',+e.target.value)} className="w-full text-slate-900"/></Field><Field label="Intervalle vidange"><input min="1" type="number" value={f.oilChangeInterval} onChange={e=>set('oilChangeInterval',+e.target.value)} className="w-full text-slate-900"/></Field><Field label="Statut"><select value={f.status} onChange={e=>set('status',e.target.value)} className="w-full text-slate-900">{['Disponible','Réservé','Loué','Entretien','Indisponible'].map(x=><option key={x}>{x}</option>)}</select></Field><Field label="Notes"><textarea value={f.notes} onChange={e=>set('notes',e.target.value)} className="w-full text-slate-900"/></Field><button className="btn-primary sm:col-span-2"><Wrench size={17}/> Enregistrer le véhicule</button></form></Modal>}

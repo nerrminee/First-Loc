@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { demoVehicles } from '../../data/vehicles'
+import { useRentalData } from '../../context/RentalDataContext'
 
 const reservationSchema = z.object({
   nom: z.string().min(2, 'Le nom est requis.'),
@@ -29,6 +30,9 @@ type ReservationFormValues = z.infer<typeof reservationSchema>
 
 export default function ReservationPage() {
   const [submitted, setSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const { submitReservation, vehicles, reservations, rentals } = useRentalData()
   const {
     register,
     handleSubmit,
@@ -50,9 +54,22 @@ export default function ReservationPage() {
   }, [dateDepart, dateRetour])
 
   const totalEstime = selectedVehicle ? selectedVehicle.prix_par_jour * jours : 0
+  const isUnavailable = (vehicleId: string) => {
+    const vehicle = vehicles.find((item) => item.id === vehicleId)
+    if (vehicle && ['Loué', 'Entretien', 'Indisponible'].includes(vehicle.status)) return true
+    if (!dateDepart || !dateRetour) return false
+    const overlaps = (start: string, end: string) => start <= dateRetour && dateDepart <= end
+    return reservations.some((item) => item.vehicleId === vehicleId && item.status === 'Acceptée' && overlaps(item.startDate, item.endDate)) || rentals.some((item) => item.vehicleId === vehicleId && item.status === 'En cours' && overlaps(item.actualStartDate, item.plannedEndDate))
+  }
 
-  const onSubmit = () => {
-    setSubmitted(true)
+  const onSubmit = async (values: ReservationFormValues) => {
+    setSubmitting(true); setSubmitError('')
+    try {
+      if (isUnavailable(values.vehicule_id)) throw new Error('Ce véhicule n’est pas disponible sur la période sélectionnée.')
+      await submitReservation({ clientName: `${values.prenom} ${values.nom}`, phone: values.telephone, email: values.email, address: values.adresse, licenseNumber: values.permis_numero, vehicleId: values.vehicule_id, startDate: values.date_depart, endDate: values.date_retour, startTime: values.heure_depart, endTime: values.heure_retour, pickupLocation: values.lieu_depart, returnLocation: values.lieu_retour, days: jours, totalPrice: totalEstime, paymentMethod: '', message: values.message ?? '' })
+      setSubmitted(true)
+    } catch (error) { setSubmitError(error instanceof Error ? error.message : 'Impossible d’envoyer la demande.') }
+    finally { setSubmitting(false) }
   }
 
   return (
@@ -112,7 +129,7 @@ export default function ReservationPage() {
                 <select {...register('vehicule_id')} className="w-full">
                   <option value="">Sélectionnez un véhicule</option>
                   {demoVehicles.map((vehicle) => (
-                    <option key={vehicle.id} value={vehicle.id}>{vehicle.marque} {vehicle.modele}</option>
+                    <option key={vehicle.id} value={vehicle.id} disabled={isUnavailable(vehicle.id)}>{vehicle.marque} {vehicle.modele}{isUnavailable(vehicle.id) ? ' — Indisponible' : ''}</option>
                   ))}
                 </select>
                 {errors.vehicule_id && <span className="text-sm text-rose-600">{errors.vehicule_id.message}</span>}
@@ -159,8 +176,9 @@ export default function ReservationPage() {
             </label>
             {errors.conditions && <span className="text-sm text-rose-600">{errors.conditions.message}</span>}
 
-            <button type="submit" className="inline-flex w-full items-center justify-center rounded-2xl bg-brand px-6 py-4 text-white transition hover:bg-brand-dark">
-              Envoyer la demande
+            {submitError && <p className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{submitError}</p>}
+            <button type="submit" disabled={submitting} className="inline-flex w-full items-center justify-center rounded-2xl bg-brand px-6 py-4 text-white transition hover:bg-brand-dark disabled:opacity-60">
+              {submitting ? 'Envoi en cours…' : 'Envoyer la demande'}
             </button>
           </div>
 

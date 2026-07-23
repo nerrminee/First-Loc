@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app'
+import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: 'AIzaSyCXoXrOkdpZ7w9LV-0Rryi22FNJaQYL-ZM',
@@ -10,3 +11,6 @@ const firebaseConfig = {
 }
 
 export const firebaseApp = initializeApp(firebaseConfig)
+
+// Firestore database used by reservations, rentals, vehicles and maintenance.
+export const db = getFirestore(firebaseApp)
