@@ -182,16 +182,16 @@ function ReturnModal({ rental, onClose, onSave }: { rental: Rental; onClose: () 
   return (
     <Modal title="Retour du véhicule" onClose={onClose}>
       <form onSubmit={submit} className="grid gap-5 sm:grid-cols-2">
-        <Field label="Date réelle retour"><input required type="date" value={form.actualReturnDate} onChange={(event) => set('actualReturnDate', event.target.value)} className="w-full text-slate-900" /></Field>
-        <Field label="Heure retour"><input required type="time" value={form.actualReturnTime} onChange={(event) => set('actualReturnTime', event.target.value)} className="w-full text-slate-900" /></Field>
-        <Field label="KM retour"><input required min={rental.startMileage} type="number" value={form.returnMileage} onChange={(event) => set('returnMileage', +event.target.value)} className="w-full text-slate-900" /></Field>
-        <Field label="KM parcourus"><input readOnly value={Math.max(0, form.returnMileage - rental.startMileage)} className="w-full bg-slate-100 text-slate-900" /></Field>
-        <Field label="Carburant retour"><select value={form.fuelReturn} onChange={(event) => set('fuelReturn', event.target.value)} className="w-full text-slate-900">{['Plein', '3/4', '1/2', '1/4', 'Réserve'].map((value) => <option key={value}>{value}</option>)}</select></Field>
-        <Field label="État au retour"><input required value={form.returnCondition} onChange={(event) => set('returnCondition', event.target.value)} className="w-full text-slate-900" /></Field>
-        <Field label="Frais supplémentaires"><input min="0" type="number" value={form.extraFees} onChange={(event) => set('extraFees', +event.target.value)} className="w-full text-slate-900" /></Field>
-        <Field label="Raison des frais"><input value={form.extraFeesReason} onChange={(event) => set('extraFeesReason', event.target.value)} className="w-full text-slate-900" /></Field>
-        <Field label="Paiement au retour"><input min="0" type="number" value={form.paymentAtReturn} onChange={(event) => set('paymentAtReturn', +event.target.value)} className="w-full text-slate-900" /></Field>
-        <Field label="Notes"><textarea value={form.notes} onChange={(event) => set('notes', event.target.value)} className="w-full text-slate-900" /></Field>
+        <Field label="Date réelle retour"><input required type="date" value={form.actualReturnDate} onChange={(event) => set('actualReturnDate', event.target.value)} className="w-full text-white" /></Field>
+        <Field label="Heure retour"><input required type="time" value={form.actualReturnTime} onChange={(event) => set('actualReturnTime', event.target.value)} className="w-full text-white" /></Field>
+        <Field label="KM retour"><input required min={rental.startMileage} type="number" value={form.returnMileage} onChange={(event) => set('returnMileage', +event.target.value)} className="w-full text-white" /></Field>
+        <Field label="KM parcourus"><input readOnly value={Math.max(0, form.returnMileage - rental.startMileage)} className="w-full bg-slate-800 text-white" /></Field>
+        <Field label="Carburant retour"><select value={form.fuelReturn} onChange={(event) => set('fuelReturn', event.target.value)} className="w-full text-white">{['Plein', '3/4', '1/2', '1/4', 'Réserve'].map((value) => <option key={value}>{value}</option>)}</select></Field>
+        <Field label="État au retour"><input required value={form.returnCondition} onChange={(event) => set('returnCondition', event.target.value)} className="w-full text-white" /></Field>
+        <Field label="Frais supplémentaires"><input min="0" type="number" value={form.extraFees} onChange={(event) => set('extraFees', +event.target.value)} className="w-full text-white" /></Field>
+        <Field label="Raison des frais"><input value={form.extraFeesReason} onChange={(event) => set('extraFeesReason', event.target.value)} className="w-full text-white" /></Field>
+        <Field label="Paiement au retour"><input min="0" type="number" value={form.paymentAtReturn} onChange={(event) => set('paymentAtReturn', +event.target.value)} className="w-full text-white" /></Field>
+        <Field label="Notes"><textarea value={form.notes} onChange={(event) => set('notes', event.target.value)} className="w-full text-white" /></Field>
         <label className="sm:col-span-2 flex gap-3 rounded-2xl bg-orange-50 p-4 text-sm font-semibold text-orange-900"><input type="checkbox" checked={form.maintenanceRequired} onChange={(event) => set('maintenanceRequired', event.target.checked)} /> Véhicule à placer en entretien</label>
         <div className="sm:col-span-2 rounded-2xl bg-slate-950 p-5 text-white">
           <div className="flex justify-between"><span>Montant final</span><strong>{final.toLocaleString()} DA</strong></div>
