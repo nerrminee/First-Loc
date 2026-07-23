@@ -74,5 +74,35 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(139,92,246,.
   caret-color: #fff;
   box-shadow: 0 0 0 1000px #0d1020 inset;
 }
+input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+select,
+textarea {
+  background-color: #0d1020 !important;
+  color: #fff !important;
+  caret-color: #fff;
+  -webkit-text-fill-color: #fff !important;
+}
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255,255,255,.58) !important;
+  -webkit-text-fill-color: rgba(255,255,255,.58) !important;
+  opacity: 1;
+}
+select option {
+  background: #0d1020;
+  color: #fff;
+}
+input[type='date']::-webkit-calendar-picker-indicator,
+input[type='time']::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+input:not([type='checkbox']):not([type='radio']):-webkit-autofill,
+input:not([type='checkbox']):not([type='radio']):-webkit-autofill:hover,
+input:not([type='checkbox']):not([type='radio']):-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff !important;
+  caret-color: #fff;
+  box-shadow: 0 0 0 1000px #0d1020 inset;
+  transition: background-color 9999s ease-out;
+}
 ::selection { background: rgba(124,58,237,.5); }
 @media (max-width: 640px) { .container { width: min(100% - 1.25rem,1180px); } }

@@ -68,10 +68,6 @@ export default function VehiculeDetailsPage() {
                   <p className="mt-2 text-lg font-semibold text-slate-950">{vehicle.immatriculation}</p>
                 </div>
                 <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                  <p className="text-sm text-slate-500">Kilométrage</p>
-                  <p className="mt-2 text-lg font-semibold text-slate-950">{vehicle.kilometrage.toLocaleString()} km</p>
-                </div>
-                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
                   <p className="text-sm text-slate-500">Boîte</p>
                   <p className="mt-2 text-lg font-semibold text-slate-950">{vehicle.boite}</p>
                 </div>

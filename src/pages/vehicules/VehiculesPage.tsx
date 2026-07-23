@@ -111,7 +111,6 @@ export default function VehiculesPage() {
                   <div>{vehicle.boite}</div>
                   <div>{vehicle.carburant}</div>
                   <div>{vehicle.places} places</div>
-                  <div>{vehicle.kilometrage.toLocaleString()} km</div>
                 </div>
                 <div className="mt-6 flex flex-wrap gap-3">
                   <Link to={`/vehicules/${vehicle.id}`} className="rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-100">
