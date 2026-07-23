@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, onSnapshot, query, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
+import { addDoc, collection, doc, getDoc, onSnapshot, query, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
 import { db } from './firebase'
 import type { AdminVehicle, MaintenanceRecord, Rental, Reservation, ReturnRentalInput, StartRentalInput, VehicleAdminStatus } from '../types/rental'
 
@@ -24,6 +24,21 @@ export const createManualReservation = async (data: ReservationInput) => {
 export const setReservationStatus = (id: string, status: Reservation['status']) => updateDoc(doc(db, 'reservations', id), { status, updatedAt: new Date().toISOString() })
 export const saveVehicle = (vehicle: AdminVehicle) => setDoc(doc(db, 'vehicles', vehicle.id), clean(vehicle), { merge: true })
 export const setVehicleStatus = (id: string, status: VehicleAdminStatus) => setDoc(doc(db, 'vehicles', id), { status }, { merge: true })
+
+const catalogUpdates = [
+  { id: 'vehicule-1', brand: 'Renault', model: 'Clio 5 Alpine', year: 2025, registration: 'WW-895-SE', oilChangeInterval: 10000, notes: 'Clio 5 Alpine 2025. Vidange tous les 10 000 km.' },
+  { id: 'vehicule-2', brand: 'Dacia', model: 'Sandero Stepway', year: 2025, registration: 'WW-593-BD', oilChangeInterval: 10000, notes: 'Stepway 2025. Vidange tous les 10 000 km.' },
+  { id: 'vehicule-4', brand: 'Volkswagen', model: 'Polo R-Line', year: 2022, registration: '52779-122-31', oilChangeInterval: 10000, notes: 'Polo R-Line 2022. Vidange tous les 10 000 km.' },
+] as const
+
+export const syncVehicleCatalog = async () => {
+  await Promise.all(catalogUpdates.map(async (update) => {
+    const vehicleRef = doc(db, 'vehicles', update.id)
+    const snapshot = await getDoc(vehicleRef)
+    if (snapshot.data()?.catalogVersion === 1) return
+    await setDoc(vehicleRef, { ...update, catalogVersion: 1 }, { merge: true })
+  }))
+}
 
 export const createRentalFromReservation = async (reservation: Reservation, input: StartRentalInput) => {
   if (input.startMileage < 0 || input.amountPaid < 0 || input.rentalPrice < 0) throw new Error('Les valeurs kilométriques et monétaires doivent être positives.')
@@ -53,6 +68,9 @@ export const addRentalPayment = async (rental: Rental, amount: number) => {
 export const addMaintenance = async (data: Omit<MaintenanceRecord, 'id' | 'createdAt'>) => {
   const now = new Date().toISOString()
   const ref = await addDoc(collection(db, 'maintenance'), clean({ ...data, createdAt: now }))
-  if (data.type === 'Vidange') await setDoc(doc(db, 'vehicles', data.vehicleId), { lastOilChangeMileage: data.mileage, nextOilChangeMileage: data.nextMaintenanceMileage, status: 'Disponible' }, { merge: true })
+  const vehicleUpdate = data.type === 'Vidange'
+    ? { currentMileage: data.mileage, lastOilChangeMileage: data.mileage, nextOilChangeMileage: data.nextMaintenanceMileage, status: 'Disponible' }
+    : { currentMileage: data.mileage }
+  await setDoc(doc(db, 'vehicles', data.vehicleId), vehicleUpdate, { merge: true })
   return ref.id
 }

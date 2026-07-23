@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { demoVehicles } from '../data/vehicles'
-import { addMaintenance, addRentalPayment, completeRental, createManualReservation, createRentalFromReservation, createReservation, saveVehicle, setReservationStatus, subscribeMaintenance, subscribeRentals, subscribeReservations, subscribeVehicles } from '../lib/rentalRepository'
+import { addMaintenance, addRentalPayment, completeRental, createManualReservation, createRentalFromReservation, createReservation, saveVehicle, setReservationStatus, subscribeMaintenance, subscribeRentals, subscribeReservations, subscribeVehicles, syncVehicleCatalog } from '../lib/rentalRepository'
 import type { AdminVehicle, MaintenanceRecord, Rental, Reservation, ReturnRentalInput, StartRentalInput } from '../types/rental'
 import { useAuth } from './AuthContext'
 
@@ -29,6 +29,7 @@ export function RentalDataProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     const unsubs = [subscribeVehicles(setRemoteVehicles)]
     if (admin) {
+      void syncVehicleCatalog().catch((error) => console.error('[vehicle catalog]', error))
       unsubs.push(
         subscribeReservations((items) => { setReservations(items); setLoading(false) }),
         subscribeRentals(setRentals),
@@ -60,6 +61,11 @@ export function RentalDataProvider({ children }: { children: ReactNode }) {
     return createManualReservation(data)
   }
   const returnRental = async (rental: Rental, input: ReturnRentalInput) => { const vehicle = vehicles.find((item) => item.id === rental.vehicleId); if (vehicle && input.returnMileage < vehicle.currentMileage) throw new Error(`Le kilométrage ne peut pas être inférieur au kilométrage actuel (${vehicle.currentMileage.toLocaleString()} km).`); await completeRental(rental, input) }
-  return <Context.Provider value={{ reservations, rentals, vehicles, maintenance, loading, submitReservation: createReservation, addManualReservation, changeReservationStatus, startRental, returnRental, payRental: addRentalPayment, upsertVehicle: saveVehicle, registerMaintenance: addMaintenance, hasConflict }}>{children}</Context.Provider>
+  const registerMaintenance: typeof addMaintenance = async (data) => {
+    const vehicle = vehicles.find((item) => item.id === data.vehicleId)
+    if (vehicle && data.mileage < vehicle.currentMileage) throw new Error(`Le kilométrage d’entretien ne peut pas être inférieur au kilométrage actuel (${vehicle.currentMileage.toLocaleString()} km).`)
+    return addMaintenance(data)
+  }
+  return <Context.Provider value={{ reservations, rentals, vehicles, maintenance, loading, submitReservation: createReservation, addManualReservation, changeReservationStatus, startRental, returnRental, payRental: addRentalPayment, upsertVehicle: saveVehicle, registerMaintenance, hasConflict }}>{children}</Context.Provider>
 }
 export const useRentalData = () => { const value = useContext(Context); if (!value) throw new Error('RentalDataProvider manquant'); return value }

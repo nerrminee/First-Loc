@@ -6,7 +6,7 @@ export type MaintenanceType = 'Vidange' | 'Filtre à huile' | 'Filtre à air' | 
 export interface AdminVehicle {
   id: string; brand: string; model: string; registration: string; year: number; currentMileage: number
   status: VehicleAdminStatus; pricePerDay: number; lastOilChangeMileage: number; oilChangeInterval: number
-  nextOilChangeMileage: number; notes: string; photo?: string
+  nextOilChangeMileage: number; notes: string; photo?: string; catalogVersion?: number
 }
 export interface Reservation {
   id: string; clientName: string; phone: string; vehicleId: string; startDate: string; endDate: string
