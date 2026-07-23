@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, CalendarCheck, Check, ChevronRight, Clock3, Gauge, MapPin, ShieldCheck, Sparkles, Star, Users } from 'lucide-react'
-import { demoVehicles } from '../../data/vehicles'
+import { usePublicVehicles } from '../../hooks/usePublicVehicles'
 import heroCar from '../../assets/pic1.jpg'
 import detailCar from '../../assets/pic2.jpg'
 import logo from '../../assets/logo.png'
@@ -12,6 +12,7 @@ const benefits = [
 ]
 
 export default function HomePage() {
+  const publicVehicles = usePublicVehicles()
   return (
     <main className="overflow-hidden">
       <section className="hero-grid relative min-h-[calc(100vh-80px)]">
@@ -51,7 +52,7 @@ export default function HomePage() {
             <Link to="/vehicules" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white">Voir toute la flotte <ArrowRight size={17} /></Link>
           </div>
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-            {demoVehicles.map((car, index) => (
+            {publicVehicles.map((car, index) => (
               <article key={car.id} className="vehicle-card group">
                 <div className="relative h-56 overflow-hidden">
                   <img src={car.photo_principale} alt={`${car.marque} ${car.modele}`} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />

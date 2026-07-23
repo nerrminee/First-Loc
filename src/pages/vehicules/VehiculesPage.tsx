@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, Filter } from 'lucide-react'
-import { demoVehicles } from '../../data/vehicles'
-import type { Vehicle } from '../../types'
+import { usePublicVehicles } from '../../hooks/usePublicVehicles'
 
 const statuses = ['Disponible', 'Réservé', 'En location', 'En entretien', 'Indisponible'] as const
 const transmissions = ['Automatique', 'Manuelle'] as const
@@ -18,16 +17,17 @@ const getBadgeClass = (status: string) => {
 }
 
 export default function VehiculesPage() {
+  const publicVehicles = usePublicVehicles()
   const [selectedStatus, setSelectedStatus] = useState('')
   const [search, setSearch] = useState('')
   const [transmission, setTransmission] = useState('')
   const [marque, setMarque] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
 
-  const marques = useMemo(() => Array.from(new Set(demoVehicles.map((vehicle) => vehicle.marque))), [])
+  const marques = useMemo(() => Array.from(new Set(publicVehicles.map((vehicle) => vehicle.marque))), [publicVehicles])
 
   const filteredVehicles = useMemo(() => {
-    return demoVehicles.filter((vehicle) => {
+    return publicVehicles.filter((vehicle) => {
       const matchesStatus = selectedStatus ? vehicle.statut === selectedStatus : true
       const matchesMarque = marque ? vehicle.marque === marque : true
       const matchesTransmission = transmission ? vehicle.boite === transmission : true
@@ -35,7 +35,7 @@ export default function VehiculesPage() {
       const matchesSearch = search ? `${vehicle.marque} ${vehicle.modele}`.toLowerCase().includes(search.toLowerCase()) : true
       return matchesStatus && matchesMarque && matchesTransmission && matchesPrice && matchesSearch
     })
-  }, [selectedStatus, marque, transmission, maxPrice, search])
+  }, [publicVehicles, selectedStatus, marque, transmission, maxPrice, search])
 
   return (
     <main className="bg-surface px-4 py-10 text-slate-900">
@@ -116,9 +116,11 @@ export default function VehiculesPage() {
                   <Link to={`/vehicules/${vehicle.id}`} className="rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-100">
                     Voir les détails
                   </Link>
-                  <Link to="/reservation" className="rounded-full bg-brand px-4 py-2 text-sm text-white transition hover:bg-brand-dark">
-                    Réserver
-                  </Link>
+                  {vehicle.statut === 'Disponible' && (
+                    <Link to="/reservation" className="rounded-full bg-brand px-4 py-2 text-sm text-white transition hover:bg-brand-dark">
+                      Réserver
+                    </Link>
+                  )}
                 </div>
               </div>
             </article>

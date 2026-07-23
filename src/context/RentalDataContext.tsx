@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { demoVehicles } from '../data/vehicles'
-import { addMaintenance, addRentalPayment, clearTestData, completeRental, createManualReservation, createRentalFromReservation, createReservation, deleteMaintenance, deleteRental, deleteReservation, saveVehicle, setReservationStatus, subscribeMaintenance, subscribeRentals, subscribeReservations, subscribeVehicles, syncVehicleCatalog } from '../lib/rentalRepository'
+import { addMaintenance, addRentalPayment, clearTestData, completeRental, createManualReservation, createRentalFromReservation, createReservation, deleteMaintenance, deleteRental, deleteReservation as deleteReservationDocument, saveVehicle, setReservationStatus, setVehicleStatus, subscribeMaintenance, subscribeRentals, subscribeReservations, subscribeVehicles, syncVehicleCatalog } from '../lib/rentalRepository'
 import type { AdminVehicle, MaintenanceRecord, Rental, Reservation, ReturnRentalInput, StartRentalInput } from '../types/rental'
 import { useAuth } from './AuthContext'
 
@@ -12,7 +12,7 @@ type DataContext = {
   addManualReservation: typeof createManualReservation
   startRental: (reservation: Reservation, input: StartRentalInput) => Promise<void>; returnRental: (rental: Rental, input: ReturnRentalInput) => Promise<void>
   payRental: (rental: Rental, amount: number) => Promise<void>; upsertVehicle: typeof saveVehicle; registerMaintenance: typeof addMaintenance
-  deleteReservation: typeof deleteReservation; deleteRental: typeof deleteRental; deleteMaintenance: typeof deleteMaintenance
+  deleteReservation: (id: string) => Promise<void>; deleteRental: typeof deleteRental; deleteMaintenance: typeof deleteMaintenance
   clearTestData: typeof clearTestData
   hasConflict: (reservation: Reservation) => boolean
 }
@@ -52,8 +52,26 @@ export function RentalDataProvider({ children }: { children: ReactNode }) {
     const reservation = reservations.find((item) => item.id === id)
     if (status === 'Acceptée' && reservation && hasConflict(reservation)) throw new Error('Conflit de dates : ce véhicule est déjà réservé ou loué sur cette période.')
     await setReservationStatus(id, status)
+    if (!reservation) return
+    if (status === 'Acceptée') {
+      await setVehicleStatus(reservation.vehicleId, 'Réservé')
+      return
+    }
+    if (['Refusée', 'Annulée'].includes(status)) {
+      const hasAnotherAcceptedReservation = reservations.some((item) => item.id !== id && item.vehicleId === reservation.vehicleId && item.status === 'Acceptée')
+      const hasActiveRental = rentals.some((item) => item.vehicleId === reservation.vehicleId && item.status === 'En cours')
+      if (!hasAnotherAcceptedReservation && !hasActiveRental) await setVehicleStatus(reservation.vehicleId, 'Disponible')
+    }
   }
   const startRental = async (reservation: Reservation, input: StartRentalInput) => { await createRentalFromReservation(reservation, input) }
+  const removeReservation = async (id: string) => {
+    const reservation = reservations.find((item) => item.id === id)
+    await deleteReservationDocument(id)
+    if (!reservation || reservation.status !== 'Acceptée') return
+    const hasAnotherAcceptedReservation = reservations.some((item) => item.id !== id && item.vehicleId === reservation.vehicleId && item.status === 'Acceptée')
+    const hasActiveRental = rentals.some((item) => item.vehicleId === reservation.vehicleId && item.status === 'En cours')
+    if (!hasAnotherAcceptedReservation && !hasActiveRental) await setVehicleStatus(reservation.vehicleId, 'Disponible')
+  }
   const addManualReservation: typeof createManualReservation = async (data) => {
     const conflict = reservations.some((item) => item.vehicleId === data.vehicleId && item.status === 'Acceptée' && overlaps(item.startDate, item.endDate, data.startDate, data.endDate))
       || rentals.some((item) => item.vehicleId === data.vehicleId && item.status === 'En cours' && overlaps(item.actualStartDate, item.plannedEndDate, data.startDate, data.endDate))
@@ -68,6 +86,6 @@ export function RentalDataProvider({ children }: { children: ReactNode }) {
     if (vehicle && data.mileage < vehicle.currentMileage) throw new Error(`Le kilométrage d’entretien ne peut pas être inférieur au kilométrage actuel (${vehicle.currentMileage.toLocaleString()} km).`)
     return addMaintenance(data)
   }
-  return <Context.Provider value={{ reservations, rentals, vehicles, maintenance, loading, submitReservation: createReservation, addManualReservation, changeReservationStatus, startRental, returnRental, payRental: addRentalPayment, upsertVehicle: saveVehicle, registerMaintenance, deleteReservation, deleteRental, deleteMaintenance, clearTestData, hasConflict }}>{children}</Context.Provider>
+  return <Context.Provider value={{ reservations, rentals, vehicles, maintenance, loading, submitReservation: createReservation, addManualReservation, changeReservationStatus, startRental, returnRental, payRental: addRentalPayment, upsertVehicle: saveVehicle, registerMaintenance, deleteReservation: removeReservation, deleteRental, deleteMaintenance, clearTestData, hasConflict }}>{children}</Context.Provider>
 }
 export const useRentalData = () => { const value = useContext(Context); if (!value) throw new Error('RentalDataProvider manquant'); return value }

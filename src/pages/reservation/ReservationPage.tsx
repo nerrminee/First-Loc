@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { demoVehicles } from '../../data/vehicles'
 import { useRentalData } from '../../context/RentalDataContext'
+import { usePublicVehicles } from '../../hooks/usePublicVehicles'
 
 const reservationSchema = z.object({
   nom: z.string().min(2, 'Le nom est requis.'),
@@ -31,6 +31,7 @@ export default function ReservationPage() {
   const [submitError, setSubmitError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const { submitReservation, vehicles, reservations, rentals } = useRentalData()
+  const publicVehicles = usePublicVehicles()
   const {
     register,
     handleSubmit,
@@ -45,12 +46,12 @@ export default function ReservationPage() {
   const dateDepart = watch('date_depart')
   const jours = watch('nombre_jours') || 0
   const dateRetour = useMemo(() => addDays(dateDepart, jours), [dateDepart, jours])
-  const selectedVehicle = useMemo(() => demoVehicles.find((vehicle) => vehicle.id === vehiculeId), [vehiculeId])
+  const selectedVehicle = useMemo(() => publicVehicles.find((vehicle) => vehicle.id === vehiculeId), [publicVehicles, vehiculeId])
 
   const totalEstime = selectedVehicle ? selectedVehicle.prix_par_jour * jours : 0
   const isUnavailable = (vehicleId: string, startDate = dateDepart, endDate = dateRetour) => {
     const vehicle = vehicles.find((item) => item.id === vehicleId)
-    if (vehicle && ['Loué', 'Entretien', 'Indisponible'].includes(vehicle.status)) return true
+    if (vehicle && ['Réservé', 'Loué', 'Entretien', 'Indisponible'].includes(vehicle.status)) return true
     if (!startDate || !endDate) return false
     const overlaps = (start: string, end: string) => start <= endDate && startDate <= end
     return reservations.some((item) => item.vehicleId === vehicleId && item.status === 'Acceptée' && overlaps(item.startDate, item.endDate)) || rentals.some((item) => item.vehicleId === vehicleId && item.status === 'En cours' && overlaps(item.actualStartDate, item.plannedEndDate))
@@ -103,7 +104,7 @@ export default function ReservationPage() {
                 <span className="text-sm font-medium text-slate-700">Véhicule sélectionné</span>
                 <select {...register('vehicule_id')} className="w-full">
                   <option value="">Sélectionnez un véhicule</option>
-                  {demoVehicles.map((vehicle) => (
+                  {publicVehicles.map((vehicle) => (
                     <option key={vehicle.id} value={vehicle.id} disabled={isUnavailable(vehicle.id)}>{vehicle.marque} {vehicle.modele}{isUnavailable(vehicle.id) ? ' — Indisponible' : ''}</option>
                   ))}
                 </select>

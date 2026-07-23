@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Calendar, MapPin, Circle, Fuel, Users } from 'lucide-react'
-import { demoVehicles } from '../../data/vehicles'
+import { usePublicVehicles } from '../../hooks/usePublicVehicles'
 
 const statusClasses = {
   Disponible: 'bg-emerald-100 text-emerald-800',
@@ -13,7 +13,8 @@ const statusClasses = {
 
 export default function VehiculeDetailsPage() {
   const { id } = useParams()
-  const vehicle = useMemo(() => demoVehicles.find((item) => item.id === id), [id])
+  const publicVehicles = usePublicVehicles()
+  const vehicle = useMemo(() => publicVehicles.find((item) => item.id === id), [id, publicVehicles])
 
   if (!vehicle) {
     return (
@@ -42,9 +43,15 @@ export default function VehiculeDetailsPage() {
             <p className="text-sm font-medium uppercase tracking-[0.3em] text-slate-500">Prix par jour</p>
             <p className="mt-3 text-3xl font-semibold text-slate-950">{vehicle.prix_par_jour} DZD</p>
             <p className="mt-1 text-sm text-slate-600">Caution: {vehicle.caution.toLocaleString()} DZD</p>
-            <Link to="/reservation" className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-brand px-6 py-3 text-white transition hover:bg-brand-dark">
-              Demander une réservation
-            </Link>
+            {vehicle.statut === 'Disponible' ? (
+              <Link to="/reservation" className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-brand px-6 py-3 text-white transition hover:bg-brand-dark">
+                Demander une réservation
+              </Link>
+            ) : (
+              <p className="mt-6 rounded-2xl bg-rose-50 px-5 py-3 text-center text-sm font-semibold text-rose-700">
+                Ce véhicule est actuellement indisponible.
+              </p>
+            )}
           </div>
         </div>
 
