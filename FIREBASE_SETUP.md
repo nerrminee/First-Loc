@@ -13,6 +13,8 @@ Exemple : pour se connecter avec le nom d’utilisateur `gestionnaire`, créer l
 
 ## 2. Autoriser chaque administrateur
 
+Le premier administrateur avec l’UID `zSQJRtEbcsYunlReTXkPtWvcPCl2` est configuré automatiquement. Son document `admins/{uid}` sera créé lors de sa première connexion après la publication des règles.
+
 Pour chaque utilisateur créé :
 
 1. Copier son **UID** depuis Authentication > Users.
