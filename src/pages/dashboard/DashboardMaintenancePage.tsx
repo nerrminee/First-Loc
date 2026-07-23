@@ -166,7 +166,7 @@ function MileageModal({
           Kilométrage enregistré : <strong>{vehicle.currentMileage.toLocaleString()} km</strong>
         </div>
         <Field label="Nouveau kilométrage">
-          <input autoFocus required min="0" type="number" value={mileage} onChange={(event) => setMileage(+event.target.value)} className="w-full text-white" />
+          <input autoFocus required min="0" type="number" value={mileage} onChange={(event) => setMileage(+event.target.value)} className="maintenance-field w-full text-white" />
         </Field>
         {error && <p className="rounded-2xl bg-rose-50 p-4 text-sm text-rose-700">{error}</p>}
         <button className="btn-primary w-full"><Gauge size={17} /> Enregistrer le kilométrage</button>
@@ -233,22 +233,22 @@ function MaintenanceModal({
     <Modal title="Ajouter un entretien" onClose={onClose}>
       <form onSubmit={submit} className="grid gap-5 sm:grid-cols-2">
         <Field label="Véhicule">
-          <select required value={form.vehicleId} onChange={(event) => selectVehicle(event.target.value)} className="w-full text-white">
+          <select required value={form.vehicleId} onChange={(event) => selectVehicle(event.target.value)} className="maintenance-field w-full text-white">
             {vehicles.map((vehicle) => <option key={vehicle.id} value={vehicle.id}>{vehicle.brand} {vehicle.model} · {vehicle.registration}</option>)}
           </select>
         </Field>
         <Field label="Type d’entretien">
-          <select value={form.type} onChange={(event) => set('type', event.target.value)} className="w-full text-white">
+          <select value={form.type} onChange={(event) => set('type', event.target.value)} className="maintenance-field w-full text-white">
             {maintenanceTypes.map((type) => <option key={type}>{type}</option>)}
           </select>
         </Field>
-        <Field label="Date"><input required type="date" value={form.date} onChange={(event) => set('date', event.target.value)} className="w-full text-white" /></Field>
-        <Field label="Kilométrage actuel"><input required min="0" type="number" value={form.mileage} onChange={(event) => changeMileage(+event.target.value)} className="w-full text-white" /></Field>
-        <Field label="Montant"><input min="0" type="number" value={form.cost} onChange={(event) => set('cost', +event.target.value)} className="w-full text-white" /></Field>
-        <Field label="Garage"><input value={form.garage} onChange={(event) => set('garage', event.target.value)} className="w-full text-white" /></Field>
-        <Field label="Prochaine échéance KM"><input min="0" type="number" value={form.nextMaintenanceMileage} onChange={(event) => set('nextMaintenanceMileage', +event.target.value)} className="w-full text-white" /></Field>
-        <Field label="Prochaine échéance date"><input type="date" value={form.nextMaintenanceDate} onChange={(event) => set('nextMaintenanceDate', event.target.value)} className="w-full text-white" /></Field>
-        <Field label="Notes"><textarea value={form.notes} onChange={(event) => set('notes', event.target.value)} className="w-full text-white" /></Field>
+        <Field label="Date"><input required type="date" value={form.date} onChange={(event) => set('date', event.target.value)} className="maintenance-field w-full text-white" /></Field>
+        <Field label="Kilométrage actuel"><input required min="0" type="number" value={form.mileage} onChange={(event) => changeMileage(+event.target.value)} className="maintenance-field w-full text-white" /></Field>
+        <Field label="Montant"><input min="0" type="number" value={form.cost} onChange={(event) => set('cost', +event.target.value)} className="maintenance-field w-full text-white" /></Field>
+        <Field label="Garage"><input value={form.garage} onChange={(event) => set('garage', event.target.value)} className="maintenance-field w-full text-white" /></Field>
+        <Field label="Prochaine échéance KM"><input min="0" type="number" value={form.nextMaintenanceMileage} onChange={(event) => set('nextMaintenanceMileage', +event.target.value)} className="maintenance-field w-full text-white" /></Field>
+        <Field label="Prochaine échéance date"><input type="date" value={form.nextMaintenanceDate} onChange={(event) => set('nextMaintenanceDate', event.target.value)} className="maintenance-field w-full text-white" /></Field>
+        <Field label="Notes"><textarea value={form.notes} onChange={(event) => set('notes', event.target.value)} className="maintenance-field w-full text-white" /></Field>
         {error && <p className="sm:col-span-2 rounded-2xl bg-rose-50 p-4 text-sm text-rose-700">{error}</p>}
         <button className="btn-primary sm:col-span-2"><Wrench size={17} /> Enregistrer l’entretien</button>
       </form>

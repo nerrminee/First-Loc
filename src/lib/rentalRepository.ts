@@ -26,17 +26,18 @@ export const saveVehicle = (vehicle: AdminVehicle) => setDoc(doc(db, 'vehicles',
 export const setVehicleStatus = (id: string, status: VehicleAdminStatus) => setDoc(doc(db, 'vehicles', id), { status }, { merge: true })
 
 const catalogUpdates = [
-  { id: 'vehicule-1', brand: 'Renault', model: 'Clio 5 Alpine', year: 2025, registration: 'WW-895-SE', oilChangeInterval: 10000, notes: 'Clio 5 Alpine 2025. Vidange tous les 10 000 km.' },
-  { id: 'vehicule-2', brand: 'Dacia', model: 'Sandero Stepway', year: 2025, registration: 'WW-593-BD', oilChangeInterval: 10000, notes: 'Stepway 2025. Vidange tous les 10 000 km.' },
-  { id: 'vehicule-4', brand: 'Volkswagen', model: 'Polo R-Line', year: 2022, registration: '52779-122-31', oilChangeInterval: 10000, notes: 'Polo R-Line 2022. Vidange tous les 10 000 km.' },
+  { id: 'vehicule-1', brand: 'Renault', model: 'Clio 5 Alpine', year: 2025, registration: 'WW-895-SE', pricePerDay: 12000, oilChangeInterval: 10000, notes: 'Clio 5 Alpine 2025. Vidange tous les 10 000 km.' },
+  { id: 'vehicule-2', brand: 'Dacia', model: 'Sandero Stepway', year: 2025, registration: 'WW-593-BD', pricePerDay: 11000, oilChangeInterval: 10000, notes: 'Stepway 2025. Vidange tous les 10 000 km.' },
+  { id: 'vehicule-3', brand: 'Volkswagen', model: 'Golf 8.5', pricePerDay: 23000, oilChangeInterval: 10000 },
+  { id: 'vehicule-4', brand: 'Volkswagen', model: 'Polo R-Line', year: 2022, registration: '52779-122-31', pricePerDay: 12000, oilChangeInterval: 10000, notes: 'Polo R-Line 2022. Vidange tous les 10 000 km.' },
 ] as const
 
 export const syncVehicleCatalog = async () => {
   await Promise.all(catalogUpdates.map(async (update) => {
     const vehicleRef = doc(db, 'vehicles', update.id)
     const snapshot = await getDoc(vehicleRef)
-    if (snapshot.data()?.catalogVersion === 1) return
-    await setDoc(vehicleRef, { ...update, catalogVersion: 1 }, { merge: true })
+    if ((snapshot.data()?.catalogVersion || 0) >= 2) return
+    await setDoc(vehicleRef, { ...update, catalogVersion: 2 }, { merge: true })
   }))
 }
 

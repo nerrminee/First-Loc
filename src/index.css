@@ -64,5 +64,15 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(139,92,246,.
   box-shadow: 0 0 0 1000px #0d1020 inset;
   transition: background-color 9999s ease-out;
 }
+.maintenance-field { color: #fff !important; caret-color: #fff; -webkit-text-fill-color: #fff; }
+.maintenance-field option { color: #fff; background: #0d1020; }
+.maintenance-field::-webkit-calendar-picker-indicator { filter: invert(1); }
+.maintenance-field:-webkit-autofill,
+.maintenance-field:-webkit-autofill:hover,
+.maintenance-field:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+  box-shadow: 0 0 0 1000px #0d1020 inset;
+}
 ::selection { background: rgba(124,58,237,.5); }
 @media (max-width: 640px) { .container { width: min(100% - 1.25rem,1180px); } }
