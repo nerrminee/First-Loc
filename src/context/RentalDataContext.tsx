@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { demoVehicles } from '../data/vehicles'
-import { addMaintenance, addRentalPayment, completeRental, createManualReservation, createRentalFromReservation, createReservation, saveVehicle, setReservationStatus, subscribeMaintenance, subscribeRentals, subscribeReservations, subscribeVehicles, syncVehicleCatalog } from '../lib/rentalRepository'
+import { addMaintenance, addRentalPayment, clearTestData, completeRental, createManualReservation, createRentalFromReservation, createReservation, deleteMaintenance, deleteRental, deleteReservation, saveVehicle, setReservationStatus, subscribeMaintenance, subscribeRentals, subscribeReservations, subscribeVehicles, syncVehicleCatalog } from '../lib/rentalRepository'
 import type { AdminVehicle, MaintenanceRecord, Rental, Reservation, ReturnRentalInput, StartRentalInput } from '../types/rental'
 import { useAuth } from './AuthContext'
 
@@ -12,6 +12,8 @@ type DataContext = {
   addManualReservation: typeof createManualReservation
   startRental: (reservation: Reservation, input: StartRentalInput) => Promise<void>; returnRental: (rental: Rental, input: ReturnRentalInput) => Promise<void>
   payRental: (rental: Rental, amount: number) => Promise<void>; upsertVehicle: typeof saveVehicle; registerMaintenance: typeof addMaintenance
+  deleteReservation: typeof deleteReservation; deleteRental: typeof deleteRental; deleteMaintenance: typeof deleteMaintenance
+  clearTestData: typeof clearTestData
   hasConflict: (reservation: Reservation) => boolean
 }
 const Context = createContext<DataContext | null>(null)
@@ -66,6 +68,6 @@ export function RentalDataProvider({ children }: { children: ReactNode }) {
     if (vehicle && data.mileage < vehicle.currentMileage) throw new Error(`Le kilométrage d’entretien ne peut pas être inférieur au kilométrage actuel (${vehicle.currentMileage.toLocaleString()} km).`)
     return addMaintenance(data)
   }
-  return <Context.Provider value={{ reservations, rentals, vehicles, maintenance, loading, submitReservation: createReservation, addManualReservation, changeReservationStatus, startRental, returnRental, payRental: addRentalPayment, upsertVehicle: saveVehicle, registerMaintenance, hasConflict }}>{children}</Context.Provider>
+  return <Context.Provider value={{ reservations, rentals, vehicles, maintenance, loading, submitReservation: createReservation, addManualReservation, changeReservationStatus, startRental, returnRental, payRental: addRentalPayment, upsertVehicle: saveVehicle, registerMaintenance, deleteReservation, deleteRental, deleteMaintenance, clearTestData, hasConflict }}>{children}</Context.Provider>
 }
 export const useRentalData = () => { const value = useContext(Context); if (!value) throw new Error('RentalDataProvider manquant'); return value }

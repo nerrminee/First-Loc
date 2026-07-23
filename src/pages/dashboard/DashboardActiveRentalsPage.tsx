@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Banknote, Play, RotateCcw } from 'lucide-react'
+import { Banknote, Play, RotateCcw, Trash2 } from 'lucide-react'
 import { useRentalData } from '../../context/RentalDataContext'
 import type { Rental, Reservation, ReturnRentalInput } from '../../types/rental'
 import { Empty, Field, Modal, PageHeader, StatusBadge } from '../../components/admin/AdminUI'
@@ -10,7 +10,7 @@ const payment = (rental: Rental) => rental.remainingAmount <= 0 ? 'Payé' : rent
 const rentalState = (rental: Rental) => rental.plannedEndDate < today() ? 'En retard' : rental.plannedEndDate === today() ? "Retour aujourd'hui" : 'En cours'
 
 export default function DashboardActiveRentalsPage() {
-  const { reservations, rentals, vehicles, startRental, payRental, returnRental } = useRentalData()
+  const { reservations, rentals, vehicles, startRental, payRental, returnRental, deleteReservation, deleteRental } = useRentalData()
   const accepted = reservations
     .filter((reservation) => reservation.status === 'Acceptée' && !reservation.rentalId)
     .sort((a, b) => a.startDate.localeCompare(b.startDate))
@@ -59,6 +59,17 @@ export default function DashboardActiveRentalsPage() {
                     <td className="px-4 py-4">
                       <button onClick={() => setPickup(reservation)} className="inline-flex items-center gap-1 rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white">
                         <Play size={15} /> Véhicule récupéré
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm(`Supprimer la réservation de ${reservation.clientName} ?`)) return
+                          await deleteReservation(reservation.id)
+                          setMessage('Réservation supprimée.')
+                        }}
+                        className="ml-2 rounded-xl bg-rose-100 p-2 text-rose-700"
+                        title="Supprimer"
+                      >
+                        <Trash2 size={15} />
                       </button>
                     </td>
                   </tr>
@@ -109,6 +120,17 @@ export default function DashboardActiveRentalsPage() {
                       <div className="flex gap-2">
                         <button onClick={() => setPaying(rental)} className="inline-flex gap-1 rounded-xl bg-emerald-100 px-3 py-2 text-xs font-bold text-emerald-800"><Banknote size={15} /> Paiement</button>
                         <button onClick={() => setReturning(rental)} className="inline-flex gap-1 rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white"><RotateCcw size={15} /> Retour</button>
+                        <button
+                          onClick={async () => {
+                            if (!window.confirm(`Supprimer définitivement la location de ${rental.clientName} ?`)) return
+                            await deleteRental(rental)
+                            setMessage('Location supprimée et véhicule remis disponible.')
+                          }}
+                          className="rounded-xl bg-rose-100 p-2 text-rose-700"
+                          title="Supprimer"
+                        >
+                          <Trash2 size={15} />
+                        </button>
                       </div>
                     </td>
                   </tr>

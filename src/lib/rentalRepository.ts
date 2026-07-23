@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, getDoc, onSnapshot, query, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
 import { db } from './firebase'
 import type { AdminVehicle, MaintenanceRecord, Rental, Reservation, ReturnRentalInput, StartRentalInput, VehicleAdminStatus } from '../types/rental'
 
@@ -22,22 +22,23 @@ export const createManualReservation = async (data: ReservationInput) => {
   return ref.id
 }
 export const setReservationStatus = (id: string, status: Reservation['status']) => updateDoc(doc(db, 'reservations', id), { status, updatedAt: new Date().toISOString() })
+export const deleteReservation = (id: string) => deleteDoc(doc(db, 'reservations', id))
 export const saveVehicle = (vehicle: AdminVehicle) => setDoc(doc(db, 'vehicles', vehicle.id), clean(vehicle), { merge: true })
 export const setVehicleStatus = (id: string, status: VehicleAdminStatus) => setDoc(doc(db, 'vehicles', id), { status }, { merge: true })
 
 const catalogUpdates = [
-  { id: 'vehicule-1', brand: 'Renault', model: 'Clio 5 Alpine', year: 2025, registration: 'WW-895-SE', pricePerDay: 12000, oilChangeInterval: 10000, notes: 'Clio 5 Alpine 2025. Vidange tous les 10 000 km.' },
-  { id: 'vehicule-2', brand: 'Dacia', model: 'Sandero Stepway', year: 2025, registration: 'WW-593-BD', pricePerDay: 11000, oilChangeInterval: 10000, notes: 'Stepway 2025. Vidange tous les 10 000 km.' },
-  { id: 'vehicule-3', brand: 'Volkswagen', model: 'Golf 8.5', pricePerDay: 23000, oilChangeInterval: 10000 },
-  { id: 'vehicule-4', brand: 'Volkswagen', model: 'Polo R-Line', year: 2022, registration: '52779-122-31', pricePerDay: 12000, oilChangeInterval: 10000, notes: 'Polo R-Line 2022. Vidange tous les 10 000 km.' },
+  { id: 'vehicule-1', brand: 'Renault', model: 'Clio 5 Alpine', year: 2025, registration: 'WW-895-SE', color: 'Noir', pricePerDay: 12000, oilChangeInterval: 10000, notes: 'Clio 5 Alpine 2025. Vidange tous les 10 000 km.' },
+  { id: 'vehicule-2', brand: 'Dacia', model: 'Sandero Stepway', year: 2025, registration: 'WW-593-BD', color: 'Bleu', pricePerDay: 11000, oilChangeInterval: 10000, notes: 'Stepway 2025. Vidange tous les 10 000 km.' },
+  { id: 'vehicule-3', brand: 'Volkswagen', model: 'Golf 8.5', color: 'Gris Nardo', pricePerDay: 23000, oilChangeInterval: 10000 },
+  { id: 'vehicule-4', brand: 'Volkswagen', model: 'Polo R-Line', year: 2022, registration: '52779-122-31', color: 'Blanc', pricePerDay: 12000, oilChangeInterval: 10000, notes: 'Polo R-Line 2022. Vidange tous les 10 000 km.' },
 ] as const
 
 export const syncVehicleCatalog = async () => {
   await Promise.all(catalogUpdates.map(async (update) => {
     const vehicleRef = doc(db, 'vehicles', update.id)
     const snapshot = await getDoc(vehicleRef)
-    if ((snapshot.data()?.catalogVersion || 0) >= 2) return
-    await setDoc(vehicleRef, { ...update, catalogVersion: 2 }, { merge: true })
+    if ((snapshot.data()?.catalogVersion || 0) >= 3) return
+    await setDoc(vehicleRef, { ...update, catalogVersion: 3 }, { merge: true })
   }))
 }
 
@@ -66,12 +67,38 @@ export const addRentalPayment = async (rental: Rental, amount: number) => {
   const paid = rental.amountPaid + amount
   await updateDoc(doc(db, 'rentals', rental.id), { amountPaid: paid, remainingAmount: Math.max(0, rental.finalPrice - paid), updatedAt: new Date().toISOString() })
 }
+export const deleteRental = async (rental: Rental) => {
+  await deleteDoc(doc(db, 'rentals', rental.id))
+  if (rental.status === 'En cours') await setVehicleStatus(rental.vehicleId, 'Disponible')
+}
 export const addMaintenance = async (data: Omit<MaintenanceRecord, 'id' | 'createdAt'>) => {
   const now = new Date().toISOString()
   const ref = await addDoc(collection(db, 'maintenance'), clean({ ...data, createdAt: now }))
   const vehicleUpdate = data.type === 'Vidange'
-    ? { currentMileage: data.mileage, lastOilChangeMileage: data.mileage, nextOilChangeMileage: data.nextMaintenanceMileage, status: 'Disponible' }
+    ? { currentMileage: data.mileage, lastOilChangeDate: data.date, lastOilChangeMileage: data.mileage, nextOilChangeMileage: data.nextMaintenanceMileage, status: 'Disponible' }
     : { currentMileage: data.mileage }
   await setDoc(doc(db, 'vehicles', data.vehicleId), vehicleUpdate, { merge: true })
   return ref.id
+}
+export const deleteMaintenance = (id: string) => deleteDoc(doc(db, 'maintenance', id))
+
+export const clearTestData = async () => {
+  const [reservations, rentals, maintenance, vehicles] = await Promise.all([
+    getDocs(collection(db, 'reservations')),
+    getDocs(collection(db, 'rentals')),
+    getDocs(collection(db, 'maintenance')),
+    getDocs(collection(db, 'vehicles')),
+  ])
+  await Promise.all([
+    ...reservations.docs.map((item) => deleteDoc(item.ref)),
+    ...rentals.docs.map((item) => deleteDoc(item.ref)),
+    ...maintenance.docs.map((item) => deleteDoc(item.ref)),
+    ...vehicles.docs.map((item) => setDoc(item.ref, { status: 'Disponible' }, { merge: true })),
+    ...['vehicule-1', 'vehicule-2', 'vehicule-3', 'vehicule-4'].map((id) => setDoc(doc(db, 'vehicles', id), { status: 'Disponible' }, { merge: true })),
+  ])
+  return {
+    reservations: reservations.size,
+    rentals: rentals.size,
+    maintenance: maintenance.size,
+  }
 }

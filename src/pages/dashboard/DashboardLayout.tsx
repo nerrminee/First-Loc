@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Car, CheckCircle2, ClipboardList, Gauge, History, LogOut, Menu, PlayCircle, Wrench, X } from 'lucide-react'
+import { Car, CheckCircle2, ClipboardList, Gauge, History, LogOut, Menu, PlayCircle, Settings, Wrench, X } from 'lucide-react'
 import { useState } from 'react'
 import logoImage from '../../assets/logo.png'
 import { useAuth } from '../../context/AuthContext'
@@ -12,6 +12,7 @@ const menu = [
   ['Véhicules', '/dashboard/vehicules', Car],
   ['Entretien', '/dashboard/entretiens', Wrench],
   ['Historique', '/dashboard/historique', History],
+  ['Paramètres', '/dashboard/parametres', Settings],
 ] as const
 
 export default function DashboardLayout() {

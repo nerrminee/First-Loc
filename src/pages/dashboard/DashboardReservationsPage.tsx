@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Check, CheckCircle2, Eye, Phone, Play, Search, Sparkles, X } from 'lucide-react'
+import { Check, CheckCircle2, Eye, Phone, Play, Search, Sparkles, Trash2, X } from 'lucide-react'
 import { useRentalData } from '../../context/RentalDataContext'
 import type { AdminVehicle, Reservation, StartRentalInput } from '../../types/rental'
 import { Empty, Field, Modal, PageHeader, StatusBadge } from '../../components/admin/AdminUI'
@@ -14,7 +14,7 @@ const addDays = (date: string, days: number) => {
 }
 
 export default function DashboardReservationsPage() {
-  const { reservations, vehicles, changeReservationStatus, addManualReservation, startRental, loading, hasConflict } = useRentalData()
+  const { reservations, vehicles, changeReservationStatus, addManualReservation, deleteReservation, startRental, loading, hasConflict } = useRentalData()
   const [search, setSearch] = useState('')
   const [detail, setDetail] = useState<Reservation | null>(null)
   const [pickup, setPickup] = useState<Reservation | null>(null)
@@ -104,6 +104,17 @@ export default function DashboardReservationsPage() {
                           </button>
                         )}
                         {item.rentalId && <StatusBadge tone="blue">Location démarrée</StatusBadge>}
+                        <button
+                          onClick={async () => {
+                            if (!window.confirm(`Supprimer définitivement la réservation de ${item.clientName} ?`)) return
+                            await deleteReservation(item.id)
+                            setMessage(`La réservation de ${item.clientName} a été supprimée.`)
+                          }}
+                          className="rounded-xl bg-rose-100 p-2 text-rose-700"
+                          title="Supprimer"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
                     </td>
                   </tr>

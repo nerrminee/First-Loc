@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Gauge, Plus, Wrench } from 'lucide-react'
+import { Gauge, Plus, Trash2, Wrench } from 'lucide-react'
 import { useRentalData } from '../../context/RentalDataContext'
 import type { AdminVehicle, MaintenanceRecord, MaintenanceType } from '../../types/rental'
 import { Empty, Field, Modal, PageHeader, StatusBadge } from '../../components/admin/AdminUI'
@@ -19,9 +19,9 @@ const maintenanceTypes: MaintenanceType[] = [
 ]
 
 export default function DashboardMaintenancePage() {
-  const { vehicles, maintenance, registerMaintenance, upsertVehicle } = useRentalData()
+  const { vehicles, maintenance, registerMaintenance, upsertVehicle, deleteMaintenance } = useRentalData()
   const [maintenanceOpen, setMaintenanceOpen] = useState(false)
-  const [mileageVehicle, setMileageVehicle] = useState<AdminVehicle | null>(null)
+  const [editingVehicle, setEditingVehicle] = useState<AdminVehicle | null>(null)
   const [message, setMessage] = useState('')
 
   return (
@@ -57,16 +57,20 @@ export default function DashboardMaintenancePage() {
                   <p className="mt-1 font-bold text-slate-950">{vehicle.currentMileage.toLocaleString()} km</p>
                 </div>
                 <div className="rounded-2xl bg-slate-50 p-3">
-                  <p className="text-xs text-slate-500">Intervalle</p>
-                  <p className="mt-1 font-bold text-slate-950">{vehicle.oilChangeInterval.toLocaleString()} km</p>
+                  <p className="text-xs text-slate-500">Dernière vidange</p>
+                  <p className="mt-1 font-bold text-slate-950">{vehicle.lastOilChangeMileage.toLocaleString()} km</p>
+                </div>
+                <div className="col-span-2 rounded-2xl bg-slate-50 p-3">
+                  <p className="text-xs text-slate-500">Date de dernière vidange</p>
+                  <p className="mt-1 font-bold text-slate-950">{vehicle.lastOilChangeDate || 'Non renseignée'}</p>
                 </div>
               </div>
               <p className={`mt-5 text-2xl font-black ${tone === 'red' ? 'text-rose-600' : tone === 'amber' ? 'text-orange-600' : 'text-emerald-600'}`}>
                 {remaining >= 0 ? `${remaining.toLocaleString()} km` : `-${Math.abs(remaining).toLocaleString()} km`}
               </p>
               <p className="mt-1 text-xs text-slate-500">avant prochaine vidange · {vehicle.nextOilChangeMileage.toLocaleString()} km</p>
-              <button onClick={() => setMileageVehicle(vehicle)} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-200">
-                <Gauge size={16} /> Modifier le kilométrage
+              <button onClick={() => setEditingVehicle(vehicle)} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-200">
+                <Gauge size={16} /> Modifier les informations
               </button>
             </article>
           )
@@ -82,7 +86,7 @@ export default function DashboardMaintenancePage() {
           <table className="min-w-[900px] w-full text-left">
             <thead className="bg-slate-50">
               <tr>
-                {['Date', 'Véhicule', 'Type', 'Kilométrage', 'Montant', 'Garage', 'Notes', 'Prochaine échéance'].map((heading) => (
+                {['Date', 'Véhicule', 'Type', 'Kilométrage', 'Montant', 'Garage', 'Notes', 'Prochaine échéance', 'Actions'].map((heading) => (
                   <th key={heading} className="px-5 py-4 text-xs font-bold uppercase text-slate-500">{heading}</th>
                 ))}
               </tr>
@@ -100,6 +104,19 @@ export default function DashboardMaintenancePage() {
                     <td className="px-5 py-4">{record.garage || '—'}</td>
                     <td className="px-5 py-4">{record.notes || '—'}</td>
                     <td className="px-5 py-4">{record.nextMaintenanceMileage ? `${record.nextMaintenanceMileage.toLocaleString()} km` : record.nextMaintenanceDate || '—'}</td>
+                    <td className="px-5 py-4">
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm(`Supprimer définitivement cet entretien de ${vehicle?.brand || 'ce véhicule'} ?`)) return
+                          await deleteMaintenance(record.id)
+                          setMessage('Ligne d’entretien supprimée.')
+                        }}
+                        className="rounded-xl bg-rose-100 p-2 text-rose-700"
+                        title="Supprimer"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
                   </tr>
                 )
               })}
@@ -121,14 +138,18 @@ export default function DashboardMaintenancePage() {
         />
       )}
 
-      {mileageVehicle && (
-        <MileageModal
-          vehicle={mileageVehicle}
-          onClose={() => setMileageVehicle(null)}
-          onSave={async (mileage) => {
-            await upsertVehicle({ ...mileageVehicle, currentMileage: mileage })
-            setMileageVehicle(null)
-            setMessage(`Kilométrage de ${mileageVehicle.brand} ${mileageVehicle.model} mis à jour.`)
+      {editingVehicle && (
+        <VehicleMileageModal
+          vehicle={editingVehicle}
+          onClose={() => setEditingVehicle(null)}
+          onSave={async (values) => {
+            await upsertVehicle({
+              ...editingVehicle,
+              ...values,
+              nextOilChangeMileage: values.lastOilChangeMileage + editingVehicle.oilChangeInterval,
+            })
+            setEditingVehicle(null)
+            setMessage(`Kilométrage et dernière vidange de ${editingVehicle.brand} ${editingVehicle.model} mis à jour.`)
           }}
         />
       )}
@@ -136,40 +157,48 @@ export default function DashboardMaintenancePage() {
   )
 }
 
-function MileageModal({
+function VehicleMileageModal({
   vehicle,
   onClose,
   onSave,
 }: {
   vehicle: AdminVehicle
   onClose: () => void
-  onSave: (mileage: number) => Promise<void>
+  onSave: (values: Pick<AdminVehicle, 'currentMileage' | 'lastOilChangeDate' | 'lastOilChangeMileage'>) => Promise<void>
 }) {
-  const [mileage, setMileage] = useState(vehicle.currentMileage)
+  const [form, setForm] = useState({
+    currentMileage: vehicle.currentMileage,
+    lastOilChangeDate: vehicle.lastOilChangeDate || '',
+    lastOilChangeMileage: vehicle.lastOilChangeMileage,
+  })
   const [error, setError] = useState('')
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     setError('')
-    if (mileage < 0) return setError('Le kilométrage ne peut pas être négatif.')
+    if (form.currentMileage < 0 || form.lastOilChangeMileage < 0) return setError('Les kilométrages ne peuvent pas être négatifs.')
+    if (form.lastOilChangeMileage > form.currentMileage) return setError('Le kilométrage de la dernière vidange ne peut pas dépasser le kilométrage actuel.')
     try {
-      await onSave(mileage)
+      await onSave(form)
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Impossible de modifier le kilométrage.')
+      setError(caught instanceof Error ? caught.message : 'Impossible de modifier les informations du véhicule.')
     }
   }
 
   return (
-    <Modal title={`Kilométrage · ${vehicle.brand} ${vehicle.model}`} onClose={onClose}>
+    <Modal title={`Kilométrage et vidange · ${vehicle.brand} ${vehicle.model}`} onClose={onClose}>
       <form onSubmit={submit} className="space-y-5">
-        <div className="rounded-2xl bg-blue-50 p-4 text-sm text-blue-900">
-          Kilométrage enregistré : <strong>{vehicle.currentMileage.toLocaleString()} km</strong>
-        </div>
-        <Field label="Nouveau kilométrage">
-          <input autoFocus required min="0" type="number" value={mileage} onChange={(event) => setMileage(+event.target.value)} className="maintenance-field w-full text-white" />
+        <Field label="Kilométrage actuel">
+          <input autoFocus required min="0" type="number" value={form.currentMileage} onChange={(event) => setForm((current) => ({ ...current, currentMileage: +event.target.value }))} className="maintenance-field w-full text-white" />
+        </Field>
+        <Field label="Date de la dernière vidange">
+          <input required type="date" value={form.lastOilChangeDate} onChange={(event) => setForm((current) => ({ ...current, lastOilChangeDate: event.target.value }))} className="maintenance-field w-full text-white" />
+        </Field>
+        <Field label="Kilométrage de la dernière vidange">
+          <input required min="0" type="number" value={form.lastOilChangeMileage} onChange={(event) => setForm((current) => ({ ...current, lastOilChangeMileage: +event.target.value }))} className="maintenance-field w-full text-white" />
         </Field>
         {error && <p className="rounded-2xl bg-rose-50 p-4 text-sm text-rose-700">{error}</p>}
-        <button className="btn-primary w-full"><Gauge size={17} /> Enregistrer le kilométrage</button>
+        <button className="btn-primary w-full"><Gauge size={17} /> Enregistrer les informations</button>
       </form>
     </Modal>
   )
