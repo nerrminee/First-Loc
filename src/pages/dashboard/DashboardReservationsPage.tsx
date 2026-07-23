@@ -290,7 +290,7 @@ export function StartRentalModal({
     rentalPrice: reservation.totalPrice,
     amountPaid: 0,
     deposit: 0,
-    fuelStart: 'Plein',
+    fuelStart: 'Non renseigné',
     departureCondition: 'Bon état',
     notes: '',
   })
@@ -308,16 +308,15 @@ export function StartRentalModal({
   return (
     <Modal title="Client a récupéré le véhicule" onClose={onClose}>
       <form onSubmit={submit} className="grid gap-5 sm:grid-cols-2">
-        <Field label="Kilométrage départ *"><input required min="0" type="number" value={form.startMileage} onChange={(event) => change('startMileage', +event.target.value)} className="w-full text-slate-900" /></Field>
-        <Field label="Montant location *"><input required min="0" type="number" value={form.rentalPrice} onChange={(event) => change('rentalPrice', +event.target.value)} className="w-full text-slate-900" /></Field>
-        <Field label="Date réelle départ *"><input required type="date" value={form.actualStartDate} onChange={(event) => change('actualStartDate', event.target.value)} className="w-full text-slate-900" /></Field>
-        <Field label="Heure départ *"><input required type="time" value={form.actualStartTime} onChange={(event) => change('actualStartTime', event.target.value)} className="w-full text-slate-900" /></Field>
-        <Field label="Montant payé"><input min="0" type="number" value={form.amountPaid} onChange={(event) => change('amountPaid', +event.target.value)} className="w-full text-slate-900" /></Field>
-        <Field label="Reste à payer"><input readOnly value={Math.max(0, form.rentalPrice - form.amountPaid)} className="w-full bg-slate-100 text-slate-900" /></Field>
-        <Field label="Caution"><input min="0" type="number" value={form.deposit} onChange={(event) => change('deposit', +event.target.value)} className="w-full text-slate-900" /></Field>
-        <Field label="Carburant départ"><select value={form.fuelStart} onChange={(event) => change('fuelStart', event.target.value)} className="w-full text-slate-900">{['Plein', '3/4', '1/2', '1/4', 'Réserve'].map((value) => <option key={value}>{value}</option>)}</select></Field>
-        <Field label="État au départ"><input required value={form.departureCondition} onChange={(event) => change('departureCondition', event.target.value)} className="w-full text-slate-900" /></Field>
-        <Field label="Notes"><textarea value={form.notes} onChange={(event) => change('notes', event.target.value)} className="w-full text-slate-900" /></Field>
+        <Field label="Kilométrage départ *"><input required min="0" type="number" value={form.startMileage} onChange={(event) => change('startMileage', +event.target.value)} className="w-full text-white" /></Field>
+        <Field label="Montant location *"><input required min="0" type="number" value={form.rentalPrice} onChange={(event) => change('rentalPrice', +event.target.value)} className="w-full text-white" /></Field>
+        <Field label="Date réelle départ *"><input required type="date" value={form.actualStartDate} onChange={(event) => change('actualStartDate', event.target.value)} className="w-full text-white" /></Field>
+        <Field label="Heure départ *"><input required type="time" value={form.actualStartTime} onChange={(event) => change('actualStartTime', event.target.value)} className="w-full text-white" /></Field>
+        <Field label="Montant payé"><input min="0" type="number" value={form.amountPaid} onChange={(event) => change('amountPaid', +event.target.value)} className="w-full text-white" /></Field>
+        <Field label="Reste à payer"><input readOnly value={Math.max(0, form.rentalPrice - form.amountPaid)} className="w-full bg-slate-800 text-white" /></Field>
+        <Field label="Caution"><input min="0" type="number" value={form.deposit} onChange={(event) => change('deposit', +event.target.value)} className="w-full text-white" /></Field>
+        <Field label="État au départ"><input required value={form.departureCondition} onChange={(event) => change('departureCondition', event.target.value)} className="w-full text-white" /></Field>
+        <Field label="Notes"><textarea value={form.notes} onChange={(event) => change('notes', event.target.value)} className="w-full text-white" /></Field>
         {error && <p className="sm:col-span-2 text-sm text-rose-600">{error}</p>}
         <button className="btn-primary sm:col-span-2">Confirmer le départ</button>
       </form>
