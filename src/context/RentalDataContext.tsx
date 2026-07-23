@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { demoVehicles } from '../data/vehicles'
-import { addMaintenance, addRentalPayment, completeRental, createRentalFromReservation, createReservation, saveVehicle, setReservationStatus, subscribeMaintenance, subscribeRentals, subscribeReservations, subscribeVehicles } from '../lib/rentalRepository'
+import { addMaintenance, addRentalPayment, completeRental, createManualReservation, createRentalFromReservation, createReservation, saveVehicle, setReservationStatus, subscribeMaintenance, subscribeRentals, subscribeReservations, subscribeVehicles } from '../lib/rentalRepository'
 import type { AdminVehicle, MaintenanceRecord, Rental, Reservation, ReturnRentalInput, StartRentalInput } from '../types/rental'
 
 const seededVehicles: AdminVehicle[] = demoVehicles.map((vehicle) => { const status=String(vehicle.statut).toLowerCase(); return { id: vehicle.id, brand: vehicle.marque, model: vehicle.modele, registration: vehicle.immatriculation, year: vehicle.annee, currentMileage: vehicle.kilometrage, status: status.includes('location') ? 'Loué' : status.includes('entretien') ? 'Entretien' : status.includes('serv') ? 'Réservé' : 'Disponible', pricePerDay: vehicle.prix_par_jour, lastOilChangeMileage: Math.max(0, vehicle.kilometrage - 5000), oilChangeInterval: 10000, nextOilChangeMileage: Math.max(10000, vehicle.kilometrage + 5000), notes: vehicle.notes, photo: vehicle.photo_principale } })
@@ -8,6 +8,7 @@ const seededVehicles: AdminVehicle[] = demoVehicles.map((vehicle) => { const sta
 type DataContext = {
   reservations: Reservation[]; rentals: Rental[]; vehicles: AdminVehicle[]; maintenance: MaintenanceRecord[]; loading: boolean
   submitReservation: typeof createReservation; changeReservationStatus: (id: string, status: Reservation['status']) => Promise<void>
+  addManualReservation: typeof createManualReservation
   startRental: (reservation: Reservation, input: StartRentalInput) => Promise<void>; returnRental: (rental: Rental, input: ReturnRentalInput) => Promise<void>
   payRental: (rental: Rental, amount: number) => Promise<void>; upsertVehicle: typeof saveVehicle; registerMaintenance: typeof addMaintenance
   hasConflict: (reservation: Reservation) => boolean
@@ -34,7 +35,15 @@ export function RentalDataProvider({ children }: { children: ReactNode }) {
     await setReservationStatus(id, status)
   }
   const startRental = async (reservation: Reservation, input: StartRentalInput) => { await createRentalFromReservation(reservation, input) }
+  const addManualReservation: typeof createManualReservation = async (data) => {
+    const conflict = reservations.some((item) => item.vehicleId === data.vehicleId && item.status === 'Acceptée' && overlaps(item.startDate, item.endDate, data.startDate, data.endDate))
+      || rentals.some((item) => item.vehicleId === data.vehicleId && item.status === 'En cours' && overlaps(item.actualStartDate, item.plannedEndDate, data.startDate, data.endDate))
+    if (conflict) throw new Error('Conflit de dates : ce véhicule est déjà réservé ou loué sur cette période.')
+    const vehicle = vehicles.find((item) => item.id === data.vehicleId)
+    if (vehicle && ['Entretien', 'Indisponible'].includes(vehicle.status)) throw new Error('Ce véhicule est actuellement indisponible.')
+    return createManualReservation(data)
+  }
   const returnRental = async (rental: Rental, input: ReturnRentalInput) => { const vehicle = vehicles.find((item) => item.id === rental.vehicleId); if (vehicle && input.returnMileage < vehicle.currentMileage) throw new Error(`Le kilométrage ne peut pas être inférieur au kilométrage actuel (${vehicle.currentMileage.toLocaleString()} km).`); await completeRental(rental, input) }
-  return <Context.Provider value={{ reservations, rentals, vehicles, maintenance, loading, submitReservation: createReservation, changeReservationStatus, startRental, returnRental, payRental: addRentalPayment, upsertVehicle: saveVehicle, registerMaintenance: addMaintenance, hasConflict }}>{children}</Context.Provider>
+  return <Context.Provider value={{ reservations, rentals, vehicles, maintenance, loading, submitReservation: createReservation, addManualReservation, changeReservationStatus, startRental, returnRental, payRental: addRentalPayment, upsertVehicle: saveVehicle, registerMaintenance: addMaintenance, hasConflict }}>{children}</Context.Provider>
 }
 export const useRentalData = () => { const value = useContext(Context); if (!value) throw new Error('RentalDataProvider manquant'); return value }

@@ -11,8 +11,14 @@ export const subscribeRentals = (callback: (items: Rental[]) => void) => subscri
 export const subscribeVehicles = (callback: (items: AdminVehicle[]) => void) => subscribe('vehicles', callback)
 export const subscribeMaintenance = (callback: (items: MaintenanceRecord[]) => void) => subscribe('maintenance', callback)
 
-export const createReservation = async (data: Omit<Reservation, 'id' | 'createdAt' | 'status'>) => {
-  const ref = await addDoc(collection(db, 'reservations'), clean({ ...data, status: 'En attente', createdAt: new Date().toISOString(), createdAtServer: serverTimestamp() }))
+type ReservationInput = Omit<Reservation, 'id' | 'createdAt' | 'status' | 'source'>
+
+export const createReservation = async (data: ReservationInput) => {
+  const ref = await addDoc(collection(db, 'reservations'), clean({ ...data, source: 'En ligne', status: 'En attente', createdAt: new Date().toISOString(), createdAtServer: serverTimestamp() }))
+  return ref.id
+}
+export const createManualReservation = async (data: ReservationInput) => {
+  const ref = await addDoc(collection(db, 'reservations'), clean({ ...data, source: 'Téléphone', status: 'Acceptée', createdAt: new Date().toISOString(), createdAtServer: serverTimestamp() }))
   return ref.id
 }
 export const setReservationStatus = (id: string, status: Reservation['status']) => updateDoc(doc(db, 'reservations', id), { status, updatedAt: new Date().toISOString() })

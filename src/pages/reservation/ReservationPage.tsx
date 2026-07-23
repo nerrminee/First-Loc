@@ -9,24 +9,22 @@ const reservationSchema = z.object({
   nom: z.string().min(2, 'Le nom est requis.'),
   prenom: z.string().min(2, 'Le prénom est requis.'),
   telephone: z.string().min(6, 'Le téléphone est requis.'),
-  email: z.string().email('E-mail invalide.'),
-  adresse: z.string().min(5, 'L adresse est requise.'),
-  permis_numero: z.string().min(4, 'Le numéro du permis est requis.'),
-  permis_date: z.string().min(10, 'La date d obtention du permis est requise.'),
   vehicule_id: z.string().min(1, 'Veuillez sélectionner un véhicule.'),
   date_depart: z.string().min(10, 'La date de départ est requise.'),
-  heure_depart: z.string().min(5, 'L heure de départ est requise.'),
-  date_retour: z.string().min(10, 'La date de retour est requise.'),
-  heure_retour: z.string().min(5, 'L heure de retour est requise.'),
-  lieu_depart: z.string().min(3, 'Le lieu de départ est requis.'),
-  lieu_retour: z.string().min(3, 'Le lieu de retour est requis.'),
-  message: z.string().optional(),
+  nombre_jours: z.number().int('Le nombre de jours doit être un nombre entier.').min(1, 'Veuillez indiquer au moins un jour.'),
   conditions: z.literal(true, {
     errorMap: () => ({ message: 'Vous devez accepter les conditions de location.' })
   })
 })
 
 type ReservationFormValues = z.infer<typeof reservationSchema>
+
+const addDays = (date: string, days: number) => {
+  if (!date || days < 1) return ''
+  const [year, month, day] = date.split('-').map(Number)
+  const result = new Date(Date.UTC(year, month - 1, day + days))
+  return result.toISOString().slice(0, 10)
+}
 
 export default function ReservationPage() {
   const [submitted, setSubmitted] = useState(false)
@@ -38,35 +36,32 @@ export default function ReservationPage() {
     handleSubmit,
     watch,
     formState: { errors }
-  } = useForm<ReservationFormValues>({ resolver: zodResolver(reservationSchema) })
+  } = useForm<ReservationFormValues>({
+    resolver: zodResolver(reservationSchema),
+    defaultValues: { nombre_jours: 1 }
+  })
 
   const vehiculeId = watch('vehicule_id')
   const dateDepart = watch('date_depart')
-  const dateRetour = watch('date_retour')
+  const jours = watch('nombre_jours') || 0
+  const dateRetour = useMemo(() => addDays(dateDepart, jours), [dateDepart, jours])
   const selectedVehicle = useMemo(() => demoVehicles.find((vehicle) => vehicle.id === vehiculeId), [vehiculeId])
 
-  const jours = useMemo(() => {
-    if (!dateDepart || !dateRetour) return 0
-    const start = new Date(dateDepart)
-    const end = new Date(dateRetour)
-    const diff = Math.max(0, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)))
-    return diff || 1
-  }, [dateDepart, dateRetour])
-
   const totalEstime = selectedVehicle ? selectedVehicle.prix_par_jour * jours : 0
-  const isUnavailable = (vehicleId: string) => {
+  const isUnavailable = (vehicleId: string, startDate = dateDepart, endDate = dateRetour) => {
     const vehicle = vehicles.find((item) => item.id === vehicleId)
     if (vehicle && ['Loué', 'Entretien', 'Indisponible'].includes(vehicle.status)) return true
-    if (!dateDepart || !dateRetour) return false
-    const overlaps = (start: string, end: string) => start <= dateRetour && dateDepart <= end
+    if (!startDate || !endDate) return false
+    const overlaps = (start: string, end: string) => start <= endDate && startDate <= end
     return reservations.some((item) => item.vehicleId === vehicleId && item.status === 'Acceptée' && overlaps(item.startDate, item.endDate)) || rentals.some((item) => item.vehicleId === vehicleId && item.status === 'En cours' && overlaps(item.actualStartDate, item.plannedEndDate))
   }
 
   const onSubmit = async (values: ReservationFormValues) => {
     setSubmitting(true); setSubmitError('')
     try {
-      if (isUnavailable(values.vehicule_id)) throw new Error('Ce véhicule n’est pas disponible sur la période sélectionnée.')
-      await submitReservation({ clientName: `${values.prenom} ${values.nom}`, phone: values.telephone, email: values.email, address: values.adresse, licenseNumber: values.permis_numero, vehicleId: values.vehicule_id, startDate: values.date_depart, endDate: values.date_retour, startTime: values.heure_depart, endTime: values.heure_retour, pickupLocation: values.lieu_depart, returnLocation: values.lieu_retour, days: jours, totalPrice: totalEstime, paymentMethod: '', message: values.message ?? '' })
+      const endDate = addDays(values.date_depart, values.nombre_jours)
+      if (isUnavailable(values.vehicule_id, values.date_depart, endDate)) throw new Error('Ce véhicule n’est pas disponible sur la période sélectionnée.')
+      await submitReservation({ clientName: `${values.prenom} ${values.nom}`, phone: values.telephone, vehicleId: values.vehicule_id, startDate: values.date_depart, endDate, days: values.nombre_jours, totalPrice: selectedVehicle ? selectedVehicle.prix_par_jour * values.nombre_jours : 0, paymentMethod: '' })
       setSubmitted(true)
     } catch (error) { setSubmitError(error instanceof Error ? error.message : 'Impossible d’envoyer la demande.') }
     finally { setSubmitting(false) }
@@ -101,26 +96,6 @@ export default function ReservationPage() {
                 <input type="tel" {...register('telephone')} className="w-full" />
                 {errors.telephone && <span className="text-sm text-rose-600">{errors.telephone.message}</span>}
               </label>
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">E-mail</span>
-                <input type="email" {...register('email')} className="w-full" />
-                {errors.email && <span className="text-sm text-rose-600">{errors.email.message}</span>}
-              </label>
-              <label className="space-y-2 md:col-span-2">
-                <span className="text-sm font-medium text-slate-700">Adresse</span>
-                <input type="text" {...register('adresse')} className="w-full" />
-                {errors.adresse && <span className="text-sm text-rose-600">{errors.adresse.message}</span>}
-              </label>
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">Numéro de permis</span>
-                <input type="text" {...register('permis_numero')} className="w-full" />
-                {errors.permis_numero && <span className="text-sm text-rose-600">{errors.permis_numero.message}</span>}
-              </label>
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">Date d obtention du permis</span>
-                <input type="date" {...register('permis_date')} className="w-full" />
-                {errors.permis_date && <span className="text-sm text-rose-600">{errors.permis_date.message}</span>}
-              </label>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
@@ -140,33 +115,9 @@ export default function ReservationPage() {
                 {errors.date_depart && <span className="text-sm text-rose-600">{errors.date_depart.message}</span>}
               </label>
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">Heure de départ</span>
-                <input type="time" {...register('heure_depart')} className="w-full" />
-                {errors.heure_depart && <span className="text-sm text-rose-600">{errors.heure_depart.message}</span>}
-              </label>
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">Date de retour</span>
-                <input type="date" {...register('date_retour')} className="w-full" />
-                {errors.date_retour && <span className="text-sm text-rose-600">{errors.date_retour.message}</span>}
-              </label>
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">Heure de retour</span>
-                <input type="time" {...register('heure_retour')} className="w-full" />
-                {errors.heure_retour && <span className="text-sm text-rose-600">{errors.heure_retour.message}</span>}
-              </label>
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">Lieu de départ</span>
-                <input type="text" {...register('lieu_depart')} className="w-full" />
-                {errors.lieu_depart && <span className="text-sm text-rose-600">{errors.lieu_depart.message}</span>}
-              </label>
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">Lieu de retour</span>
-                <input type="text" {...register('lieu_retour')} className="w-full" />
-                {errors.lieu_retour && <span className="text-sm text-rose-600">{errors.lieu_retour.message}</span>}
-              </label>
-              <label className="md:col-span-2 space-y-2">
-                <span className="text-sm font-medium text-slate-700">Message</span>
-                <textarea {...register('message')} rows={4} className="w-full" />
+                <span className="text-sm font-medium text-slate-700">Nombre de jours</span>
+                <input type="number" min="1" step="1" {...register('nombre_jours', { valueAsNumber: true })} className="w-full" />
+                {errors.nombre_jours && <span className="text-sm text-rose-600">{errors.nombre_jours.message}</span>}
               </label>
             </div>
 

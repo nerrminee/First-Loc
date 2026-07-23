@@ -9,10 +9,9 @@ export interface AdminVehicle {
   nextOilChangeMileage: number; notes: string; photo?: string
 }
 export interface Reservation {
-  id: string; clientName: string; phone: string; email: string; address: string; licenseNumber: string
-  vehicleId: string; startDate: string; endDate: string; startTime: string; endTime: string; pickupLocation: string
-  returnLocation: string; days: number; totalPrice: number; paymentMethod: string; status: ReservationStatus
-  message: string; createdAt: string
+  id: string; clientName: string; phone: string; vehicleId: string; startDate: string; endDate: string
+  days: number; totalPrice: number; paymentMethod: string; status: ReservationStatus
+  source?: 'En ligne' | 'Téléphone'; createdAt: string
 }
 export interface Rental {
   id: string; reservationId: string; vehicleId: string; clientName: string; phone: string

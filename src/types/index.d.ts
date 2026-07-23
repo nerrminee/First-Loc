@@ -28,20 +28,10 @@ export interface ReservationRequest {
   nom: string
   prenom: string
   telephone: string
-  email: string
-  adresse: string
-  permis_numero: string
-  permis_date: string
   vehicule_id: string
   date_depart: string
-  heure_depart: string
-  date_retour: string
-  heure_retour: string
-  lieu_depart: string
-  lieu_retour: string
   jours: number
   total_estime: number
-  message: string
   statut: ReservationStatus
   created_at: string
 }
