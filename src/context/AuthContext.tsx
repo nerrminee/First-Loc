@@ -6,7 +6,7 @@ import { loadAdminAccount, type AdminAccount } from '../lib/auth'
 type AuthContextValue = {
   admin: AdminAccount | null
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -14,7 +14,7 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 const authMessage = (error: unknown) => {
   const code = typeof error === 'object' && error && 'code' in error ? String(error.code) : ''
-  if (code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password') return 'E-mail ou mot de passe incorrect.'
+  if (code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password') return 'Nom d’utilisateur ou mot de passe incorrect.'
   if (code === 'auth/too-many-requests') return 'Trop de tentatives. Veuillez réessayer plus tard.'
   if (code === 'auth/configuration-not-found' || code === 'auth/operation-not-allowed') return 'La connexion E-mail/Mot de passe doit être activée dans Firebase Authentication.'
   return error instanceof Error ? error.message : 'Impossible de se connecter.'
@@ -45,10 +45,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }), [])
 
-  const login = async (email: string, password: string) => {
+  const login = async (username: string, password: string) => {
     setLoading(true)
     try {
-      const credential = await signInWithEmailAndPassword(auth, email, password)
+      const normalizedUsername = username.trim().toLowerCase()
+      if (!/^[a-z0-9._-]{3,40}$/.test(normalizedUsername)) {
+        throw new Error('Le nom d’utilisateur doit contenir uniquement des lettres, chiffres, points, tirets ou tirets bas.')
+      }
+      const firebaseEmail = `${normalizedUsername}@admin.firstloc.dz`
+      const credential = await signInWithEmailAndPassword(auth, firebaseEmail, password)
       const account = await loadAdminAccount(credential.user)
       if (!account) {
         await signOut(auth)

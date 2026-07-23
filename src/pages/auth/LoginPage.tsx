@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, Car, Eye, EyeOff, Lock, LogIn, Mail, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Car, Eye, EyeOff, Lock, LogIn, ShieldCheck, User } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import logoImage from '../../assets/logo.png'
 
@@ -8,7 +8,7 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { admin, loading, login } = useAuth()
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
@@ -16,9 +16,9 @@ export default function LoginPage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError('')
-    if (!email.trim() || !password) return setError('Veuillez renseigner votre e-mail et votre mot de passe.')
+    if (!username.trim() || !password) return setError('Veuillez renseigner votre nom d’utilisateur et votre mot de passe.')
     try {
-      await login(email.trim(), password)
+      await login(username.trim(), password)
       const destination = (location.state as { from?: string } | null)?.from ?? '/dashboard'
       navigate(destination, { replace: true })
     } catch (caught) {
@@ -48,7 +48,7 @@ export default function LoginPage() {
           <section id="admin-login" className="rounded-[2rem] border border-violet-400/20 bg-[#0d1020]/90 p-8 shadow-2xl backdrop-blur-xl sm:p-10">
             <div className="mb-6"><div className="grid h-14 w-14 place-items-center rounded-2xl bg-violet-600 text-white"><ShieldCheck size={27} /></div><p className="mt-7 text-xs font-bold uppercase tracking-[.25em] text-violet-300">Espace sécurisé</p><h2 className="mt-3 text-3xl font-black">Administration</h2><p className="mt-2 text-sm text-slate-400">Réservé aux administrateurs First Loc DZ.</p></div>
             <form onSubmit={handleSubmit} className="space-y-5">
-          <label className="block"><span className="mb-2 block text-sm font-medium text-slate-300">E-mail administrateur</span><span className="relative block"><Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input autoFocus type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full py-4 pl-12 pr-4" placeholder="admin@exemple.com" /></span></label>
+          <label className="block"><span className="mb-2 block text-sm font-medium text-slate-300">Nom d’utilisateur</span><span className="relative block"><User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input autoFocus autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full py-4 pl-12 pr-4" placeholder="Votre nom d’utilisateur" /></span></label>
           <label className="block"><span className="mb-2 block text-sm font-medium text-slate-300">Mot de passe</span><span className="relative block"><Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full py-4 pl-12 pr-12" placeholder="••••••••" /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white" aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></span></label>
           {error && <p role="alert" className="rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{error}</p>}
               <button type="submit" disabled={loading} className="btn-primary w-full py-4 disabled:opacity-60"><LogIn size={19} /> {loading ? 'Connexion…' : 'Connexion administrateur'}</button>
