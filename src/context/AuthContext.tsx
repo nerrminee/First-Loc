@@ -48,11 +48,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (username: string, password: string) => {
     setLoading(true)
     try {
-      const normalizedUsername = username.trim().toLowerCase()
-      if (!/^[a-z0-9._-]{3,40}$/.test(normalizedUsername)) {
+      const normalizedLogin = username.trim().toLowerCase()
+      const isEmail = normalizedLogin.includes('@')
+      if (
+        (!isEmail && !/^[a-z0-9._-]{3,40}$/.test(normalizedLogin))
+        || (isEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedLogin))
+      ) {
         throw new Error('Le nom d’utilisateur doit contenir uniquement des lettres, chiffres, points, tirets ou tirets bas.')
       }
-      const firebaseEmail = `${normalizedUsername}@admin.firstloc.dz`
+      const firebaseEmail = isEmail ? normalizedLogin : `${normalizedLogin}@firstloc.dz`
       const credential = await signInWithEmailAndPassword(auth, firebaseEmail, password)
       const account = await loadAdminAccount(credential.user)
       if (!account) {

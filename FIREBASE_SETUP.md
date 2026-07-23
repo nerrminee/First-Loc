@@ -7,9 +7,9 @@ Dans Firebase Console :
 1. Ouvrir **Authentication** puis **Commencer**.
 2. Dans **Sign-in method**, activer **E-mail/Mot de passe**.
 3. Dans **Users**, créer chaque compte administrateur avec son mot de passe.
-4. Pour l’e-mail Firebase, utiliser le format `<nom-utilisateur>@admin.firstloc.dz`.
+4. Pour l’e-mail Firebase, utiliser le format `<nom-utilisateur>@firstloc.dz`.
 
-Exemple : pour se connecter avec le nom d’utilisateur `gestionnaire`, créer le compte Firebase `gestionnaire@admin.firstloc.dz`. L’administrateur saisira uniquement `gestionnaire` dans l’application.
+Exemple : pour se connecter avec le nom d’utilisateur `gestionnaire`, créer le compte Firebase `gestionnaire@firstloc.dz`. L’administrateur saisira uniquement `gestionnaire` dans l’application. Le formulaire accepte aussi l’e-mail Firebase complet.
 
 ## 2. Autoriser chaque administrateur
 

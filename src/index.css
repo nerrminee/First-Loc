@@ -54,5 +54,15 @@ button { cursor: pointer; }
 .card-glass { background: rgba(13,16,32,.92); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 20px 50px rgba(0,0,0,.3); }
 input, select, textarea { background: #0d1020; color: #f8fafc; border: 1px solid rgba(255,255,255,.13); border-radius: .75rem; padding: .9rem 1rem; }
 input:focus, select:focus, textarea:focus { outline: 2px solid rgba(139,92,246,.45); outline-offset: 2px; }
+.login-field { color: #fff !important; caret-color: #fff; -webkit-text-fill-color: #fff; }
+.login-field::placeholder { color: #64748b; -webkit-text-fill-color: #64748b; opacity: 1; }
+.login-field:-webkit-autofill,
+.login-field:-webkit-autofill:hover,
+.login-field:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+  box-shadow: 0 0 0 1000px #0d1020 inset;
+  transition: background-color 9999s ease-out;
+}
 ::selection { background: rgba(124,58,237,.5); }
 @media (max-width: 640px) { .container { width: min(100% - 1.25rem,1180px); } }
