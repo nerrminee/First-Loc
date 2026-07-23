@@ -119,7 +119,7 @@ export default function DashboardReservationsPage() {
           onSave={async (data) => {
             await addManualReservation(data)
             setManualOpen(false)
-            setMessage('Réservation téléphonique ajoutée et acceptée.')
+            setMessage('Réservation téléphonique ajoutée. Vous pouvez maintenant l’accepter.')
           }}
         />
       )}
@@ -233,7 +233,7 @@ function ManualReservationModal({
         </div>
         {error && <p className="sm:col-span-2 rounded-2xl bg-rose-50 p-4 text-sm text-rose-700">{error}</p>}
         <button disabled={saving} className="btn-primary sm:col-span-2 disabled:opacity-60">
-          {saving ? 'Enregistrement…' : 'Ajouter et accepter la réservation'}
+          {saving ? 'Enregistrement…' : 'Ajouter la réservation'}
         </button>
       </form>
     </Modal>

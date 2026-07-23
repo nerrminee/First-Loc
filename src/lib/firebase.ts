@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app'
+import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
@@ -11,6 +12,7 @@ const firebaseConfig = {
 }
 
 export const firebaseApp = initializeApp(firebaseConfig)
+export const auth = getAuth(firebaseApp)
 
 // Firestore database used by reservations, rentals, vehicles and maintenance.
 export const db = getFirestore(firebaseApp)

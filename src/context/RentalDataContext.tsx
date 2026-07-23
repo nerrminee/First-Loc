@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { demoVehicles } from '../data/vehicles'
 import { addMaintenance, addRentalPayment, completeRental, createManualReservation, createRentalFromReservation, createReservation, saveVehicle, setReservationStatus, subscribeMaintenance, subscribeRentals, subscribeReservations, subscribeVehicles } from '../lib/rentalRepository'
 import type { AdminVehicle, MaintenanceRecord, Rental, Reservation, ReturnRentalInput, StartRentalInput } from '../types/rental'
+import { useAuth } from './AuthContext'
 
 const seededVehicles: AdminVehicle[] = demoVehicles.map((vehicle) => { const status=String(vehicle.statut).toLowerCase(); return { id: vehicle.id, brand: vehicle.marque, model: vehicle.modele, registration: vehicle.immatriculation, year: vehicle.annee, currentMileage: vehicle.kilometrage, status: status.includes('location') ? 'Loué' : status.includes('entretien') ? 'Entretien' : status.includes('serv') ? 'Réservé' : 'Disponible', pricePerDay: vehicle.prix_par_jour, lastOilChangeMileage: Math.max(0, vehicle.kilometrage - 5000), oilChangeInterval: 10000, nextOilChangeMileage: Math.max(10000, vehicle.kilometrage + 5000), notes: vehicle.notes, photo: vehicle.photo_principale } })
 
@@ -17,16 +18,31 @@ const Context = createContext<DataContext | null>(null)
 const overlaps = (aStart: string, aEnd: string, bStart: string, bEnd: string) => aStart <= bEnd && bStart <= aEnd
 
 export function RentalDataProvider({ children }: { children: ReactNode }) {
+  const { admin, loading: authLoading } = useAuth()
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [rentals, setRentals] = useState<Rental[]>([])
   const [remoteVehicles, setRemoteVehicles] = useState<AdminVehicle[]>([])
   const [maintenance, setMaintenance] = useState<MaintenanceRecord[]>([])
   const [loading, setLoading] = useState(true)
   useEffect(() => {
-    const unsubs = [subscribeReservations((items) => { setReservations(items); setLoading(false) }), subscribeRentals(setRentals), subscribeVehicles(setRemoteVehicles), subscribeMaintenance(setMaintenance)]
+    if (authLoading) return
+    setLoading(true)
+    const unsubs = [subscribeVehicles(setRemoteVehicles)]
+    if (admin) {
+      unsubs.push(
+        subscribeReservations((items) => { setReservations(items); setLoading(false) }),
+        subscribeRentals(setRentals),
+        subscribeMaintenance(setMaintenance),
+      )
+    } else {
+      setReservations([])
+      setRentals([])
+      setMaintenance([])
+      setLoading(false)
+    }
     const timer = window.setTimeout(() => setLoading(false), 2500)
     return () => { unsubs.forEach((unsubscribe) => unsubscribe()); window.clearTimeout(timer) }
-  }, [])
+  }, [admin, authLoading])
   const vehicles = useMemo(() => seededVehicles.map((seed) => ({ ...seed, ...remoteVehicles.find((item) => item.id === seed.id) })).concat(remoteVehicles.filter((item) => !seededVehicles.some((seed) => seed.id === item.id))), [remoteVehicles])
   const hasConflict = (reservation: Reservation) => reservations.some((item) => item.id !== reservation.id && item.vehicleId === reservation.vehicleId && item.status === 'Acceptée' && overlaps(item.startDate, item.endDate, reservation.startDate, reservation.endDate)) || rentals.some((item) => item.vehicleId === reservation.vehicleId && item.status === 'En cours' && overlaps(item.actualStartDate, item.plannedEndDate, reservation.startDate, reservation.endDate))
   const changeReservationStatus = async (id: string, status: Reservation['status']) => {

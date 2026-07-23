@@ -1,37 +1,23 @@
-export type AdminAccount = { username: string; role: 'admin1' | 'admin2' }
+import type { User } from 'firebase/auth'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from './firebase'
 
-const ADMIN_ACCOUNTS = [
-  { username: 'firstlocdz', password: 'rachel2005', role: 'admin1' },
-  { username: 'bouchra', password: 'bouboucha', role: 'admin2' },
-] as const
+export type AdminAccount = {
+  uid: string
+  email: string
+  username: string
+  role: string
+}
 
-const SESSION_KEY = 'firstloc_admin_session'
+export async function loadAdminAccount(user: User): Promise<AdminAccount | null> {
+  const snapshot = await getDoc(doc(db, 'admins', user.uid))
+  if (!snapshot.exists()) return null
 
-export const getCurrentAdmin = (): AdminAccount | null => {
-  try {
-    const session = JSON.parse(localStorage.getItem(SESSION_KEY) ?? 'null') as AdminAccount | null
-    if (!session || !ADMIN_ACCOUNTS.some((account) => account.username === session.username && account.role === session.role)) return null
-    return session
-  } catch {
-    return null
+  const data = snapshot.data()
+  return {
+    uid: user.uid,
+    email: user.email || '',
+    username: typeof data.name === 'string' && data.name.trim() ? data.name : user.email?.split('@')[0] || 'Administrateur',
+    role: typeof data.role === 'string' ? data.role : 'admin',
   }
-}
-
-export const isAuthenticated = () => getCurrentAdmin() !== null
-
-export const authenticate = (username: string, password: string) =>
-  ADMIN_ACCOUNTS.find((account) => account.username === username && account.password === password) ?? null
-
-export const login = (username: string, password: string) => {
-  const account = authenticate(username, password)
-  if (!account) return false
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ username: account.username, role: account.role }))
-  return true
-}
-
-export const logout = () => {
-  localStorage.removeItem(SESSION_KEY)
-  localStorage.removeItem('isAuthenticated')
-  localStorage.removeItem('username')
-  localStorage.removeItem('userRole')
 }

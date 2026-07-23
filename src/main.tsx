@@ -4,11 +4,12 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App'
 import { RentalDataProvider } from './context/RentalDataContext'
+import { AuthProvider } from './context/AuthContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <RentalDataProvider><App /></RentalDataProvider>
+      <AuthProvider><RentalDataProvider><App /></RentalDataProvider></AuthProvider>
     </BrowserRouter>
   </StrictMode>,
 )

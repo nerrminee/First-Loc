@@ -1,0 +1,69 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function validPublicReservation() {
+      return request.resource.data.keys().hasAll([
+          'clientName', 'phone', 'vehicleId', 'startDate', 'endDate',
+          'days', 'totalPrice', 'paymentMethod', 'source', 'status',
+          'createdAt', 'createdAtServer'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'clientName', 'phone', 'vehicleId', 'startDate', 'endDate',
+          'days', 'totalPrice', 'paymentMethod', 'source', 'status',
+          'createdAt', 'createdAtServer'
+        ])
+        && request.resource.data.clientName is string
+        && request.resource.data.clientName.size() >= 2
+        && request.resource.data.clientName.size() <= 100
+        && request.resource.data.phone is string
+        && request.resource.data.phone.size() >= 6
+        && request.resource.data.phone.size() <= 30
+        && request.resource.data.vehicleId is string
+        && request.resource.data.startDate is string
+        && request.resource.data.endDate is string
+        && request.resource.data.days is int
+        && request.resource.data.days >= 1
+        && request.resource.data.days <= 365
+        && request.resource.data.totalPrice is number
+        && request.resource.data.totalPrice >= 0
+        && request.resource.data.paymentMethod is string
+        && request.resource.data.source in ['En ligne', 'Téléphone']
+        && request.resource.data.status == 'En attente'
+        && request.resource.data.createdAt is string
+        && request.resource.data.createdAtServer is timestamp;
+    }
+
+    match /admins/{adminId} {
+      allow get: if request.auth != null && request.auth.uid == adminId;
+      allow list, create, update, delete: if false;
+    }
+
+    match /reservations/{reservationId} {
+      allow create: if isAdmin() || validPublicReservation();
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /vehicles/{vehicleId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /rentals/{rentalId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /maintenance/{maintenanceId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

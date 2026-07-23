@@ -18,7 +18,7 @@ export const createReservation = async (data: ReservationInput) => {
   return ref.id
 }
 export const createManualReservation = async (data: ReservationInput) => {
-  const ref = await addDoc(collection(db, 'reservations'), clean({ ...data, source: 'Téléphone', status: 'Acceptée', createdAt: new Date().toISOString(), createdAtServer: serverTimestamp() }))
+  const ref = await addDoc(collection(db, 'reservations'), clean({ ...data, source: 'Téléphone', status: 'En attente', createdAt: new Date().toISOString(), createdAtServer: serverTimestamp() }))
   return ref.id
 }
 export const setReservationStatus = (id: string, status: Reservation['status']) => updateDoc(doc(db, 'reservations', id), { status, updatedAt: new Date().toISOString() })

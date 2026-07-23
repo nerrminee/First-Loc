@@ -2,7 +2,7 @@ import { LayoutDashboard, LogOut, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import logo from '../assets/logo.png'
-import { getCurrentAdmin, logout } from '../lib/auth'
+import { useAuth } from '../context/AuthContext'
 
 const links = [
   { to: '/', label: 'Accueil' },
@@ -13,8 +13,8 @@ const links = [
 export default function PublicLayout() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
-  const admin = getCurrentAdmin()
-  const handleLogout = () => { logout(); navigate('/login', { replace: true }) }
+  const { admin, logout } = useAuth()
+  const handleLogout = async () => { await logout(); navigate('/login', { replace: true }) }
 
   return (
     <div className="min-h-screen bg-ink text-white">

@@ -1,0 +1,32 @@
+# Configuration Firebase sécurisée
+
+## 1. Activer la connexion administrateur
+
+Dans Firebase Console :
+
+1. Ouvrir **Authentication** puis **Commencer**.
+2. Dans **Sign-in method**, activer **E-mail/Mot de passe**.
+3. Dans **Users**, créer chaque compte administrateur avec son e-mail et son mot de passe.
+
+## 2. Autoriser chaque administrateur
+
+Pour chaque utilisateur créé :
+
+1. Copier son **UID** depuis Authentication > Users.
+2. Dans Firestore, créer la collection `admins`.
+3. Créer un document dont l’identifiant est exactement cet UID.
+4. Ajouter les champs :
+   - `name` : nom affiché de l’administrateur
+   - `role` : `admin`
+
+Un compte Firebase Authentication sans document `admins/{uid}` ne peut pas accéder au tableau de bord.
+
+## 3. Publier les règles
+
+Copier le contenu de `firestore.rules` dans Firestore Database > Rules, puis cliquer sur **Publish**.
+
+Ou, après `firebase login`, exécuter :
+
+```sh
+firebase deploy --only firestore:rules
+```

@@ -2,6 +2,50 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { Car, CheckCircle2, ClipboardList, Gauge, History, LogOut, Menu, PlayCircle, Wrench, X } from 'lucide-react'
 import { useState } from 'react'
 import logoImage from '../../assets/logo.png'
-import { getCurrentAdmin, logout } from '../../lib/auth'
-const menu=[['Tableau de bord','/dashboard',Gauge],['Réservations','/dashboard/reservations',ClipboardList],['Locations en cours','/dashboard/locations-en-cours',PlayCircle],['Locations terminées','/dashboard/locations-terminees',CheckCircle2],['Véhicules','/dashboard/vehicules',Car],['Entretien','/dashboard/entretiens',Wrench],['Historique','/dashboard/historique',History]] as const
-export default function DashboardLayout(){const navigate=useNavigate();const admin=getCurrentAdmin();const[open,setOpen]=useState(false);const handleLogout=()=>{logout();navigate('/login',{replace:true})};return <div className="min-h-screen bg-slate-100 text-slate-900"><button onClick={()=>setOpen(true)} className="fixed left-4 top-4 z-40 rounded-xl bg-slate-950 p-3 text-white shadow-lg xl:hidden" aria-label="Menu"><Menu/></button>{open&&<button className="fixed inset-0 z-40 bg-slate-950/50 xl:hidden" onClick={()=>setOpen(false)} aria-label="Fermer"/>}<aside className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-[#080a17] p-5 text-white shadow-2xl transition-transform xl:translate-x-0 ${open?'translate-x-0':'-translate-x-full'}`}><button onClick={()=>setOpen(false)} className="absolute right-4 top-4 rounded-xl p-2 text-slate-400 xl:hidden"><X/></button><div className="flex items-center gap-3 border-b border-white/10 pb-6"><img src={logoImage} className="h-16 w-20 object-contain"/><div><p className="font-black italic">FIRST LOC <span className="text-violet-400">DZ</span></p><p className="text-xs text-slate-500">Administration</p></div></div><nav className="mt-7 flex-1 space-y-1">{menu.map(([label,to,Icon])=><NavLink end={to==='/dashboard'} key={to} to={to} onClick={()=>setOpen(false)} className={({isActive})=>`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${isActive?'bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg':'text-slate-400 hover:bg-white/5 hover:text-white'}`}><Icon size={18}/>{label}</NavLink>)}</nav><div className="border-t border-white/10 pt-5"><p className="px-4 text-xs text-slate-500">Connecté : {admin?.username}</p><button onClick={handleLogout} className="mt-3 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-rose-300 hover:bg-rose-500/10"><LogOut size={18}/> Déconnexion</button></div></aside><main className="min-h-screen p-4 pt-20 xl:ml-72 xl:p-8"><div className="mx-auto max-w-[1600px]"><Outlet/></div></main></div>}
+import { useAuth } from '../../context/AuthContext'
+
+const menu = [
+  ['Tableau de bord', '/dashboard', Gauge],
+  ['Réservations', '/dashboard/reservations', ClipboardList],
+  ['Locations en cours', '/dashboard/locations-en-cours', PlayCircle],
+  ['Locations terminées', '/dashboard/locations-terminees', CheckCircle2],
+  ['Véhicules', '/dashboard/vehicules', Car],
+  ['Entretien', '/dashboard/entretiens', Wrench],
+  ['Historique', '/dashboard/historique', History],
+] as const
+
+export default function DashboardLayout() {
+  const navigate = useNavigate()
+  const { admin, logout } = useAuth()
+  const [open, setOpen] = useState(false)
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login', { replace: true })
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-100 text-slate-900">
+      <button onClick={() => setOpen(true)} className="fixed left-4 top-4 z-40 rounded-xl bg-slate-950 p-3 text-white shadow-lg xl:hidden" aria-label="Menu"><Menu /></button>
+      {open && <button className="fixed inset-0 z-40 bg-slate-950/50 xl:hidden" onClick={() => setOpen(false)} aria-label="Fermer" />}
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-[#080a17] p-5 text-white shadow-2xl transition-transform xl:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
+        <button onClick={() => setOpen(false)} className="absolute right-4 top-4 rounded-xl p-2 text-slate-400 xl:hidden"><X /></button>
+        <div className="flex items-center gap-3 border-b border-white/10 pb-6">
+          <img src={logoImage} alt="First Loc DZ" className="h-16 w-20 object-contain" />
+          <div><p className="font-black italic">FIRST LOC <span className="text-violet-400">DZ</span></p><p className="text-xs text-slate-500">Administration</p></div>
+        </div>
+        <nav className="mt-7 flex-1 space-y-1">
+          {menu.map(([label, to, Icon]) => (
+            <NavLink end={to === '/dashboard'} key={to} to={to} onClick={() => setOpen(false)} className={({ isActive }) => `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${isActive ? 'bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+              <Icon size={18} />{label}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="border-t border-white/10 pt-5">
+          <p className="px-4 text-xs text-slate-500">Connecté : {admin?.username}</p>
+          <button onClick={handleLogout} className="mt-3 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-rose-300 hover:bg-rose-500/10"><LogOut size={18} /> Déconnexion</button>
+        </div>
+      </aside>
+      <main className="min-h-screen p-4 pt-20 xl:ml-72 xl:p-8"><div className="mx-auto max-w-[1600px]"><Outlet /></div></main>
+    </div>
+  )
+}
