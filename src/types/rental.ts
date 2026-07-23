@@ -11,7 +11,7 @@ export interface AdminVehicle {
 export interface Reservation {
   id: string; clientName: string; phone: string; vehicleId: string; startDate: string; endDate: string
   days: number; totalPrice: number; paymentMethod: string; status: ReservationStatus
-  source?: 'En ligne' | 'Téléphone'; createdAt: string
+  source?: 'En ligne' | 'Téléphone'; rentalId?: string; createdAt: string
 }
 export interface Rental {
   id: string; reservationId: string; vehicleId: string; clientName: string; phone: string

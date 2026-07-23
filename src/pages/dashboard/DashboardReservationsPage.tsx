@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Check, Eye, Phone, Play, Search, X } from 'lucide-react'
+import { Check, CheckCircle2, Eye, Phone, Play, Search, Sparkles, X } from 'lucide-react'
 import { useRentalData } from '../../context/RentalDataContext'
 import type { AdminVehicle, Reservation, StartRentalInput } from '../../types/rental'
 import { Empty, Field, Modal, PageHeader, StatusBadge } from '../../components/admin/AdminUI'
@@ -29,7 +29,9 @@ export default function DashboardReservationsPage() {
     if (!window.confirm(`${status === 'Acceptée' ? 'Accepter' : 'Refuser'} cette réservation ?`)) return
     try {
       await changeReservationStatus(reservation.id, status)
-      setMessage(`Réservation ${status.toLowerCase()}.`)
+      setMessage(status === 'Acceptée'
+        ? `La réservation de ${reservation.clientName} a été acceptée avec succès.`
+        : `La réservation de ${reservation.clientName} a été refusée.`)
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Erreur')
     }
@@ -49,7 +51,7 @@ export default function DashboardReservationsPage() {
         }
       />
 
-      {message && <div className="rounded-2xl bg-blue-50 px-5 py-4 text-sm font-medium text-blue-800">{message}</div>}
+      {message && <ReservationNotice message={message} onClose={() => setMessage('')} />}
 
       <div className="rounded-3xl bg-white p-4 shadow-soft">
         <div className="relative max-w-md">
@@ -96,11 +98,12 @@ export default function DashboardReservationsPage() {
                             <button onClick={() => act(item, 'Refusée')} className="rounded-xl bg-rose-100 p-2 text-rose-700" title="Refuser"><X size={16} /></button>
                           </>
                         )}
-                        {item.status === 'Acceptée' && (
+                        {item.status === 'Acceptée' && !item.rentalId && (
                           <button onClick={() => setPickup(item)} className="inline-flex items-center gap-1 rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white">
                             <Play size={15} /> Véhicule récupéré
                           </button>
                         )}
+                        {item.rentalId && <StatusBadge tone="blue">Location démarrée</StatusBadge>}
                       </div>
                     </td>
                   </tr>
@@ -156,6 +159,37 @@ export default function DashboardReservationsPage() {
           }}
         />
       )}
+    </div>
+  )
+}
+
+function ReservationNotice({ message, onClose }: { message: string; onClose: () => void }) {
+  const isError = message.includes('Conflit') || message.includes('Erreur') || message.includes('Impossible')
+  const isAccepted = message.includes('acceptée avec succès')
+
+  return (
+    <div className={`relative overflow-hidden rounded-3xl border p-5 shadow-xl ${
+      isError
+        ? 'border-rose-300/30 bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-rose-900/15'
+        : 'border-blue-300/30 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white shadow-violet-900/20'
+    }`}>
+      <div className="absolute -right-10 -top-14 h-36 w-36 rounded-full bg-white/10" />
+      <div className="absolute -bottom-16 right-24 h-28 w-28 rounded-full bg-white/5" />
+      <div className="relative flex items-start gap-4">
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15 shadow-inner backdrop-blur-sm">
+          {isError ? <X size={25} /> : isAccepted ? <CheckCircle2 size={27} /> : <Sparkles size={24} />}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold uppercase tracking-[.22em] text-white/70">
+            {isError ? 'Action impossible' : isAccepted ? 'Réservation confirmée' : 'Mise à jour effectuée'}
+          </p>
+          <p className="mt-1 text-base font-semibold leading-6">{message}</p>
+          {isAccepted && <p className="mt-1 text-sm text-blue-100">Elle est maintenant visible dans « Locations en cours ».</p>}
+        </div>
+        <button onClick={onClose} className="rounded-xl p-2 text-white/70 transition hover:bg-white/10 hover:text-white" aria-label="Fermer la notification">
+          <X size={19} />
+        </button>
+      </div>
     </div>
   )
 }
@@ -240,7 +274,7 @@ function ManualReservationModal({
   )
 }
 
-function StartRentalModal({
+export function StartRentalModal({
   reservation,
   onClose,
   onSubmit,
