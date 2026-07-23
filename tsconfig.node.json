@@ -1,9 +1,14 @@
 {
   "compilerOptions": {
-    "composite": true,
+    "target": "ES2020",
     "module": "ES2020",
     "moduleResolution": "Bundler",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["node"]
   },
-  "include": ["vite.config.*"]
+  "include": ["vite.config.js"]
 }
